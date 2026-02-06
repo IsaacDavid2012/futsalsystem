@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Futsal Booking | Sign Up</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <div class="page-transition">
+      <div class="transition-loader"></div>
+    </div>
+    
+    <div class="cinematic-bg"></div>
+    <div class="stadium-lines"></div>
+    <div class="cinematic-glow"></div>
+    <div class="futsal-orbs"></div>
+    <div class="cinematic-noise"></div>
+
+    <main class="page">
+      <section class="auth-card">
+        <div class="brand">
+          <span>⚽ Elite Futsal Arena</span>
+          <h1>Join the squad</h1>
+        </div>
+
+        <div class="alert" role="alert"></div>
+
+        <form data-endpoint="/api/auth/signup" data-redirect="/login.html">
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" placeholder="you@email.com" required />
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="Min 8 characters" required />
+          </div>
+
+          <button class="btn-primary" type="submit">Enter the Arena</button>
+        </form>
+
+        <p class="helper">
+          Already have an account? <a href="/login.html">Login here</a>
+        </p>
+
+        <p class="footer-note">🏆 Your futsal journey starts now 🏆</p>
+      </section>
+    </main>
+
+    <script src="/js/futsal-effects.js"></script>
+  </body>
+</html>
