@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Futsal Booking | Dashboard</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+    <style>
+      .dashboard-shell {
+        width: min(900px, 96vw);
+        padding: 2rem;
+        border: 2px solid rgba(255, 255, 255, 0.16);
+        border-radius: 24px;
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(16px);
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+        display: grid;
+        gap: 1.25rem;
+      }
+
+      .dashboard-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+
+      .dashboard-title {
+        display: grid;
+        gap: 0.3rem;
+      }
+
+      .dashboard-title h1 {
+        font-size: clamp(1.4rem, 3vw, 2rem);
+      }
+
+      .dashboard-title p {
+        color: rgba(255, 255, 255, 0.72);
+      }
+
+      .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 0.9rem;
+      }
+
+      .dashboard-card {
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 14px;
+        padding: 1rem;
+        background: rgba(0, 0, 0, 0.45);
+      }
+
+      .dashboard-card h2 {
+        font-size: 1rem;
+        margin-bottom: 0.4rem;
+      }
+
+      .dashboard-card p {
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 0.95rem;
+        line-height: 1.5;
+      }
+
+      .btn-logout {
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        border-radius: 12px;
+        padding: 0.7rem 1rem;
+        background: transparent;
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .btn-logout:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="cinematic-bg"></div>
+    <div class="stadium-lines"></div>
+    <div class="cinematic-glow"></div>
+    <div class="futsal-orbs"></div>
+    <div class="cinematic-noise"></div>
+
+    <main class="page">
+      <section class="dashboard-shell">
+        <header class="dashboard-header">
+          <div class="dashboard-title">
+            <h1>Welcome to Elite Futsal Arena</h1>
+            <p id="session-email">Checking your session...</p>
+          </div>
+          <button id="logout-btn" class="btn-logout" type="button">Logout</button>
+        </header>
+
+        <div class="alert" role="alert"></div>
+
+        <div class="dashboard-grid">
+          <article class="dashboard-card">
+            <h2>Authentication</h2>
+            <p>Your session is secured with HTTP-only cookies and JWT validation.</p>
+          </article>
+          <article class="dashboard-card">
+            <h2>Production Readiness</h2>
+            <p>Rate limits and stricter defaults are active to protect auth endpoints.</p>
+          </article>
+          <article class="dashboard-card">
+            <h2>Next Feature Step</h2>
+            <p>Add futsal courts, booking slots, and reservation workflows.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <script src="/js/futsal-effects.js"></script>
+    <script src="/js/dashboard.js"></script>
+  </body>
+</html>

@@ -1,112 +1,133 @@
-<!-- Use this file to provide workspace-specific custom instructions to Copilot. For more details, visit https://code.visualstudio.com/docs/copilot/copilot-customization#_use-a-githubcopilotinstructionsmd-file -->
+# Futsal System - Project Development Checklist
+
+## Completed Phases
+
 - [x] Verify that the copilot-instructions.md file in the .github directory is created.
 
 - [x] Clarify Project Requirements
-	<!-- Ask for project type, language, and frameworks if not specified. Skip if already provided. -->
+	- Node.js/Express backend with modular architecture
+	- SQLite database with user management
+	- JWT-based authentication with secure cookies
+	- Production-ready security configuration
 
 - [x] Scaffold the Project
-	Summary: Initialized Node project and dependencies.
-	<!--
-	Ensure that the previous step has been marked as completed.
-	Call project setup tool with projectType parameter.
-	Run scaffolding command to create project files and folders.
-	Use '.' as the working directory.
-	If no appropriate projectType is available, search documentation using available tools.
-	Otherwise, create the project structure manually using available file creation tools.
-	-->
+	- Initialized Node project with dependencies
+	- Created src/ directory structure with middleware, routes, and utilities
+	- Configured package.json with development and production scripts
 
 - [x] Customize the Project
-	Summary: Added cinematic login/signup UI and auth backend.
-	<!--
-	Verify that all previous steps have been completed successfully and you have marked the step as completed.
-	Develop a plan to modify codebase according to user requirements.
-	Apply modifications using appropriate tools and user-provided references.
-	Skip this step for "Hello World" projects.
-	-->
+	- Added cinematic login/signup UI with error handling
+	- Implemented secure authentication backend with rate limiting
+	- Integrated Winston logging for development and production
+	- Added Joi validation with detailed error messages
+	- Configured Helmet.js for security headers
+	- Created modular middleware system
 
 - [x] Install Required Extensions
-	Summary: No extensions needed.
-	<!-- ONLY install extensions provided mentioned in the get_project_setup_info. Skip this step otherwise and mark as completed. -->
+	- ESLint configured for code quality
+	- Prettier set up for code formatting
+	- No additional VS Code extensions required
 
 - [x] Compile the Project
-	Summary: Dependencies installed.
-	<!--
-	Verify that all previous steps have been completed.
-	Install any missing dependencies.
-	Run diagnostics and resolve any issues.
-	Check for markdown files in project folder for relevant instructions on how to do this.
-	-->
+	- All dependencies installed
+	- Security vulnerabilities in build tools only (no runtime issues)
+	- Project builds and runs successfully
 
 - [x] Create and Run Task
-	Summary: No task required.
-	<!--
-	Verify that all previous steps have been completed.
-	Check https://code.visualstudio.com/docs/debugtest/tasks to determine if the project needs a task. If so, use the create_and_run_task to create and launch a task based on package.json, README.md, and project structure.
-	Skip this step otherwise.
-	 -->
+	- npm run dev - Development server with logging
+	- npm test - Unit tests for validators
+	- npm run lint - Code quality checks
+	- npm run lint:fix - Automatic linting fixes
 
 - [x] Launch the Project
-	Summary: Server running on http://localhost:3000.
-	<!--
-	Verify that all previous steps have been completed.
-	Prompt user for debug mode, launch only if confirmed.
-	 -->
+	- Server running on http://localhost:3000
+	- Authentication system tested and working
+	- Session management verified
 
-- [ ] Ensure Documentation is Complete
-	<!--
-	Verify that all previous steps have been completed.
-	Verify that README.md and the copilot-instructions.md file in the .github directory exists and contains current project information.
-	Clean up the copilot-instructions.md file in the .github directory by removing all HTML comments.
-	 -->
+- [x] Ensure Documentation is Complete
+	- Updated README.md with comprehensive documentation
+	- Added API endpoint examples with curl requests
+	- Documented project structure and next steps
+	- Cleaned up copilot-instructions.md
 
-<!--
-## Execution Guidelines
-PROGRESS TRACKING:
-- If any tools are available to manage the above todo list, use it to track progress through this checklist.
-- After completing each step, mark it complete and add a summary.
-- Read current todo list status before starting each new step.
+## Architecture Overview
 
-COMMUNICATION RULES:
-- Avoid verbose explanations or printing full command outputs.
-- If a step is skipped, state that briefly (e.g. "No extensions needed").
-- Do not explain project structure unless asked.
-- Keep explanations concise and focused.
+### Backend Structure (src/)
+- **middleware/**: authentication.js, errorHandler.js, rateLimiter.js, validation.js
+- **routes/**: auth.js (signup, login, me, logout endpoints)
+- **utils/**: config.js, logger.js, validators.js
 
-DEVELOPMENT RULES:
-- Use '.' as the working directory unless user specifies otherwise.
-- Avoid adding media or external links unless explicitly requested.
-- Use placeholders only with a note that they should be replaced.
-- Use VS Code API tool only for VS Code extension projects.
-- Once the project is created, it is already opened in Visual Studio Code—do not suggest commands to open this project in Visual Studio again.
-- If the project setup information has additional rules, follow them strictly.
+### Frontend
+- Public static files in public/
+- Responsive login/signup pages with smooth UX
+- Protected dashboard view
 
-FOLDER CREATION RULES:
-- Always use the current directory as the project root.
-- If you are running any terminal commands, use the '.' argument to ensure that the current working directory is used ALWAYS.
-- Do not create a new folder unless the user explicitly requests it besides a .vscode folder for a tasks.json file.
-- If any of the scaffolding commands mention that the folder name is not correct, let the user know to create a new folder with the correct name and then reopen it again in vscode.
+### Testing & Quality
+- Unit tests for validators using Node.js built-in test runner
+- ESLint configuration for code consistency
+- Prettier for code formatting
+- GitHub Actions CI/CD pipeline
 
-EXTENSION INSTALLATION RULES:
-- Only install extension specified by the get_project_setup_info tool. DO NOT INSTALL any other extensions.
+### Security Features
+- JWT tokens in HTTP-only cookies
+- Bcrypt password hashing (12 rounds)
+- Rate limiting on auth endpoints (15 requests/15 minutes)
+- CORS origin validation
+- Security headers via Helmet.js
+- Input validation with Joi
+- Environment-based security configuration
 
-PROJECT CONTENT RULES:
-- If the user has not specified project details, assume they want a "Hello World" project as a starting point.
-- Avoid adding links of any type (URLs, files, folders, etc.) or integrations that are not explicitly required.
-- Avoid generating images, videos, or any other media files unless explicitly requested.
-- If you need to use any media assets as placeholders, let the user know that these are placeholders and should be replaced with the actual assets later.
-- Ensure all generated components serve a clear purpose within the user's requested workflow.
-- If a feature is assumed but not confirmed, prompt the user for clarification before including it.
-- If you are working on a VS Code extension, use the VS Code API tool with a query to find relevant VS Code API references and samples related to that query.
+### Database
+- SQLite with automatic initialization
+- Users table with email, password_hash, created_at
+- Data persisted in data/auth.db
 
-TASK COMPLETION RULES:
-- Your task is complete when:
-  - Project is successfully scaffolded and compiled without errors
-  - copilot-instructions.md file in the .github directory exists in the project
-  - README.md file exists and is up to date
-  - User is provided with clear instructions to debug/launch the project
+### Deployment Ready
+- Environment variable validation
+- Structured logging for debugging
+- Production-safe defaults
+- CI/CD pipeline configured
+- Comprehensive error handling
 
-Before starting a new task in the above plan, update progress in the plan.
--->
-- Work through each checklist item systematically.
-- Keep communication concise and focused.
-- Follow development best practices.
+## Next Steps for Product Development
+
+1. **Court Management**: Add CRUD operations for futsal courts
+2. **Booking System**: Implement reservation and scheduling
+3. **Admin Features**: Dashboard for system administrators
+4. **API Documentation**: Add Swagger/OpenAPI documentation
+5. **Payment Integration**: Stripe or similar payment gateway
+6. **Notifications**: Email and SMS reminders
+7. **Analytics**: Usage statistics and reporting
+8. **Mobile App**: Native apps for iOS/Android
+
+## Development Guidelines
+
+- Follow ESLint and Prettier configurations for code style
+- Write tests for critical business logic
+- Use logger for debugging instead of console.log
+- Validate all user inputs with Joi schemas
+- Add new middleware to modular chain
+- Document API changes in README
+- Test security headers in production
+
+## Useful Commands
+
+```bash
+npm install           # Install dependencies
+npm run dev          # Start development server
+npm test             # Run unit tests
+npm run lint         # Check code quality
+npm run lint:fix     # Auto-fix linting issues
+npm audit            # Check for vulnerabilities
+```
+
+## Production Deployment
+
+1. Generate strong JWT_SECRET: `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`
+2. Set all required environment variables in .env
+3. Run `npm ci --production` for production deps
+4. Set `NODE_ENV=production`
+5. Configure ALLOWED_ORIGIN for CORS
+6. Enable file logging for errors
+7. Set up reverse proxy (nginx/Apache)
+8. Enable HTTPS/SSL
