@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Futsal Booking | Home</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+    <style>
+      .home-shell {
+        width: min(1100px, 96vw);
+        padding: 2rem;
+        border: 2px solid rgba(255, 255, 255, 0.16);
+        border-radius: 24px;
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(16px);
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+        display: grid;
+        gap: 1.25rem;
+      }
+
+      .home-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+
+      .home-brand {
+        display: grid;
+        gap: 0.35rem;
+      }
+
+      .home-brand h1 {
+        font-size: clamp(1.5rem, 3vw, 2.1rem);
+      }
+
+      .home-brand p {
+        color: rgba(255, 255, 255, 0.72);
+      }
+
+      .home-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .btn-ghost,
+      .btn-logout {
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        border-radius: 12px;
+        padding: 0.7rem 1rem;
+        background: transparent;
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+      }
+
+      .btn-ghost:hover,
+      .btn-logout:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .hero {
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 18px;
+        padding: 1.2rem;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.25));
+      }
+
+      .hero h2 {
+        font-size: clamp(1.15rem, 2.4vw, 1.5rem);
+        margin-bottom: 0.45rem;
+      }
+
+      .hero p {
+        color: rgba(255, 255, 255, 0.78);
+        line-height: 1.5;
+      }
+
+      .home-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 0.9rem;
+      }
+
+      .home-card {
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 14px;
+        padding: 1rem;
+        background: rgba(0, 0, 0, 0.45);
+      }
+
+      .home-card h3 {
+        font-size: 1rem;
+        margin-bottom: 0.35rem;
+      }
+
+      .home-card p {
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 0.94rem;
+        line-height: 1.45;
+      }
+
+      @media (max-width: 700px) {
+        .home-shell {
+          padding: 1.2rem;
+        }
+
+        .home-actions {
+          width: 100%;
+          justify-content: flex-start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="cinematic-bg"></div>
+    <div class="stadium-lines"></div>
+    <div class="cinematic-glow"></div>
+    <div class="futsal-orbs"></div>
+    <div class="cinematic-noise"></div>
+
+    <main class="page">
+      <section class="home-shell">
+        <header class="home-topbar">
+          <div class="home-brand">
+            <h1>Elite Futsal Arena</h1>
+            <p id="session-email">Loading your club access...</p>
+          </div>
+
+          <div class="home-actions">
+            <a class="btn-ghost" href="#" id="book-link" aria-disabled="true">Book a court</a>
+            <button id="logout-btn" class="btn-logout" type="button">Logout</button>
+          </div>
+        </header>
+
+        <div class="alert" role="alert"></div>
+
+        <section class="hero">
+          <h2>Your matchday hub is ready</h2>
+          <p>
+            This is your real signed-in home page. You can now expand this into court booking,
+            schedules, and payments while keeping authentication and session handling in place.
+          </p>
+        </section>
+
+        <section class="home-grid">
+          <article class="home-card">
+            <h3>Live Availability</h3>
+            <p>Show today and this week court slots with real-time booking status.</p>
+          </article>
+          <article class="home-card">
+            <h3>Upcoming Matches</h3>
+            <p>List your reservations, teams, and kickoff times in one timeline.</p>
+          </article>
+          <article class="home-card">
+            <h3>Member Wallet</h3>
+            <p>Add payment methods, review invoices, and track spending history.</p>
+          </article>
+          <article class="home-card">
+            <h3>Venue Notes</h3>
+            <p>Share house rules, open hours, and special tournament announcements.</p>
+          </article>
+        </section>
+      </section>
+    </main>
+
+    <script src="/js/futsal-effects.js"></script>
+    <script src="/js/home.js"></script>
+  </body>
+</html>

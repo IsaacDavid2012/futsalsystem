@@ -12,6 +12,15 @@ const logger = require('../utils/logger');
 
 const router = express.Router();
 
+const adminEmails = new Set(
+  String(process.env.ADMIN_EMAILS || 'admin@futsalhub.com')
+    .split(',')
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean)
+);
+
+const resolveUserRole = (email) => (adminEmails.has(String(email || '').toLowerCase()) ? 'admin' : 'customer');
+
 // Rate limiters
 const authRateLimiter = createRateLimiter(config.rateLimit.auth);
 
@@ -35,17 +44,19 @@ router.post(
   authRateLimiter,
   validateRequest(signupSchema),
   asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
+    const email = String(req.body.email || '').toLowerCase();
+    const { password } = req.body;
 
     logger.info('Signup attempt', { email: email.substring(0, 3) + '***' });
 
     try {
       const passwordHash = await bcrypt.hash(password, 12);
       const createdAt = new Date().toISOString();
+      const role = resolveUserRole(email);
 
       db.run(
-        'INSERT INTO users (email, password_hash, created_at) VALUES (?, ?, ?)',
-        [email, passwordHash, createdAt],
+        'INSERT INTO users (email, password_hash, role, created_at) VALUES (?, ?, ?, ?)',
+        [email, passwordHash, role, createdAt],
         function (err) {
           if (err) {
             if (err.message.includes('UNIQUE')) {
@@ -56,7 +67,7 @@ router.post(
             return res.status(500).json({ message: 'Server error.' });
           }
 
-          issueAuthCookie(res, { id: this.lastID, email });
+          issueAuthCookie(res, { id: this.lastID, email, role });
           logger.info('User signed up', { userId: this.lastID });
 
           return res.status(201).json({ message: 'Signup successful.' });
@@ -79,12 +90,13 @@ router.post(
   authRateLimiter,
   validateRequest(loginSchema),
   (req, res) => {
-    const { email, password } = req.body;
+    const email = String(req.body.email || '').toLowerCase();
+    const { password } = req.body;
 
     logger.info('Login attempt', { email: email.substring(0, 3) + '***' });
 
     db.get(
-      'SELECT id, email, password_hash FROM users WHERE email = ?',
+      'SELECT id, email, password_hash, role FROM users WHERE email = ?',
       [email],
       asyncHandler(async (err, row) => {
         if (err) {
@@ -105,7 +117,8 @@ router.post(
             return res.status(401).json({ message: 'Invalid credentials.' });
           }
 
-          issueAuthCookie(res, { id: row.id, email: row.email });
+          const role = row.role || resolveUserRole(row.email);
+          issueAuthCookie(res, { id: row.id, email: row.email, role });
           logger.info('User logged in', { userId: row.id });
 
           return res.json({ message: 'Login successful.' });
@@ -123,7 +136,7 @@ router.post(
  * Get current authenticated user info
  */
 router.get('/me', requireAuth, (req, res) => {
-  return res.json({ user: { id: req.user.id, email: req.user.email } });
+  return res.json({ user: { id: req.user.id, email: req.user.email, role: req.user.role || 'customer' } });
 });
 
 /**

@@ -104,7 +104,7 @@ form?.addEventListener('submit', async (event) => {
     showAlert(data.message || 'Success', false);
 
     // Redirect after success
-    const redirect = form.dataset.redirect || '/dashboard';
+    const redirect = form.dataset.redirect || '/home';
     setTimeout(() => {
       window.location.href = redirect;
     }, 1000);

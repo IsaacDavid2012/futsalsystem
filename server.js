@@ -17,6 +17,8 @@ const jwt = require('jsonwebtoken');
 
 // Import routes
 const authRoutes = require('./src/routes/auth');
+const bookingsRoutes = require('./src/routes/bookings');
+const adminRoutes = require('./src/routes/admin');
 
 const app = express();
 
@@ -26,7 +28,8 @@ app.use(helmet({
     directives: {
       defaultSrc: ['\'self\''],
       scriptSrc: ['\'self\''],
-      styleSrc: ['\'self\'', '\'unsafe-inline\''],
+      styleSrc: ['\'self\'', '\'unsafe-inline\'', 'https://fonts.googleapis.com', 'https://cdnjs.cloudflare.com'],
+      fontSrc: ['\'self\'', 'https://fonts.gstatic.com', 'https://cdnjs.cloudflare.com', 'data:'],
     },
   },
 }));
@@ -71,17 +74,16 @@ app.get('/api/health', (_req, res) => {
 });
 
 /**
- * Root redirect - go to dashboard if authenticated, otherwise to login
+ * Root route - always show the main site entry page
  */
-app.get('/', (req, res) => {
-  const hasAuthCookie = Boolean(req.cookies.auth);
-  res.redirect(hasAuthCookie ? '/dashboard' : '/login.html');
+app.get('/', (_req, res) => {
+  res.redirect('/login.html');
 });
 
 /**
- * Dashboard route - requires authentication
+ * Home route - requires authentication
  */
-app.get('/dashboard', (req, res) => {
+app.get('/home', (req, res) => {
   const token = req.cookies.auth;
 
   if (!token) {
@@ -90,18 +92,27 @@ app.get('/dashboard', (req, res) => {
 
   try {
     jwt.verify(token, config.jwt.secret || 'dev_secret_change_me');
-    return res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
+    return res.sendFile(path.join(__dirname, 'public', 'index.html'));
   } catch {
-    logger.warn('Dashboard access denied - invalid token');
+    logger.warn('Home access denied - invalid token');
     res.clearCookie('auth', { path: '/' });
     return res.redirect('/login.html');
   }
 });
 
 /**
+ * Legacy dashboard route - redirect to home
+ */
+app.get('/dashboard', (_req, res) => {
+  res.redirect('/home');
+});
+
+/**
  * API Routes
  */
 app.use('/api/auth', authRoutes);
+app.use('/api/bookings', bookingsRoutes);
+app.use('/api/admin', adminRoutes);
 
 /**
  * 404 handler for API routes

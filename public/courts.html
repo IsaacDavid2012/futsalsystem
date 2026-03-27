@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Courts - FutsalHub</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-futbol"></i>
+                <h1>FutsalHub</h1>
+            </div>
+            <nav class="nav">
+                <a href="index.html" class="nav-link"><i class="fas fa-home"></i> Home</a>
+                <a href="courts.html" class="nav-link active"><i class="fas fa-border-all"></i> Courts</a>
+                <a href="bookings.html" class="nav-link"><i class="fas fa-calendar-check"></i> My Bookings</a>
+                <a href="about.html" class="nav-link"><i class="fas fa-info-circle"></i> About</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <h1 class="page-title">Our Courts</h1>
+            <p class="page-subtitle">Choose from our 5 premium futsal courts</p>
+        </div>
+    </section>
+
+    <!-- Date Selector -->
+    <section class="date-selector-section">
+        <div class="container">
+            <div class="date-selector">
+                <button class="date-nav" id="prevDate"><i class="fas fa-chevron-left"></i></button>
+                <div class="selected-date">
+                    <i class="fas fa-calendar-day"></i>
+                    <span id="currentDate">Today</span>
+                </div>
+                <button class="date-nav" id="nextDate"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Courts Section -->
+    <section class="courts-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Available Courts</h2>
+                <div class="legend">
+                    <span class="legend-item"><span class="badge available"></span> Available</span>
+                    <span class="legend-item"><span class="badge booked"></span> Booked</span>
+                </div>
+            </div>
+
+            <div class="courts-grid">
+                <!-- Court 1 -->
+                <div class="court-card" data-court="1">
+                    <div class="court-header">
+                        <div class="court-name">
+                            <i class="fas fa-futbol"></i>
+                            <h3>Court 1</h3>
+                        </div>
+                        <span class="court-type">Premium</span>
+                    </div>
+                    <div class="court-visual">
+                        <div class="mini-field">
+                            <div class="mini-center"></div>
+                            <div class="mini-goals"></div>
+                        </div>
+                    </div>
+                    <div class="court-info">
+                        <div class="info-item">
+                            <i class="fas fa-users"></i>
+                            <span>10 Players</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <span>$50/hr</span>
+                        </div>
+                    </div>
+                    <button class="btn-book" onclick="selectCourt(1)">
+                        <i class="fas fa-calendar-plus"></i> Book Now
+                    </button>
+                </div>
+
+                <!-- Court 2 -->
+                <div class="court-card" data-court="2">
+                    <div class="court-header">
+                        <div class="court-name">
+                            <i class="fas fa-futbol"></i>
+                            <h3>Court 2</h3>
+                        </div>
+                        <span class="court-type">Premium</span>
+                    </div>
+                    <div class="court-visual">
+                        <div class="mini-field">
+                            <div class="mini-center"></div>
+                            <div class="mini-goals"></div>
+                        </div>
+                    </div>
+                    <div class="court-info">
+                        <div class="info-item">
+                            <i class="fas fa-users"></i>
+                            <span>10 Players</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <span>$50/hr</span>
+                        </div>
+                    </div>
+                    <button class="btn-book" onclick="selectCourt(2)">
+                        <i class="fas fa-calendar-plus"></i> Book Now
+                    </button>
+                </div>
+
+                <!-- Court 3 -->
+                <div class="court-card" data-court="3">
+                    <div class="court-header">
+                        <div class="court-name">
+                            <i class="fas fa-futbol"></i>
+                            <h3>Court 3</h3>
+                        </div>
+                        <span class="court-type standard">Standard</span>
+                    </div>
+                    <div class="court-visual">
+                        <div class="mini-field">
+                            <div class="mini-center"></div>
+                            <div class="mini-goals"></div>
+                        </div>
+                    </div>
+                    <div class="court-info">
+                        <div class="info-item">
+                            <i class="fas fa-users"></i>
+                            <span>10 Players</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <span>$40/hr</span>
+                        </div>
+                    </div>
+                    <button class="btn-book" onclick="selectCourt(3)">
+                        <i class="fas fa-calendar-plus"></i> Book Now
+                    </button>
+                </div>
+
+                <!-- Court 4 -->
+                <div class="court-card" data-court="4">
+                    <div class="court-header">
+                        <div class="court-name">
+                            <i class="fas fa-futbol"></i>
+                            <h3>Court 4</h3>
+                        </div>
+                        <span class="court-type standard">Standard</span>
+                    </div>
+                    <div class="court-visual">
+                        <div class="mini-field">
+                            <div class="mini-center"></div>
+                            <div class="mini-goals"></div>
+                        </div>
+                    </div>
+                    <div class="court-info">
+                        <div class="info-item">
+                            <i class="fas fa-users"></i>
+                            <span>10 Players</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <span>$40/hr</span>
+                        </div>
+                    </div>
+                    <button class="btn-book" onclick="selectCourt(4)">
+                        <i class="fas fa-calendar-plus"></i> Book Now
+                    </button>
+                </div>
+
+                <!-- Court 5 -->
+                <div class="court-card" data-court="5">
+                    <div class="court-header">
+                        <div class="court-name">
+                            <i class="fas fa-futbol"></i>
+                            <h3>Court 5</h3>
+                        </div>
+                        <span class="court-type vip">VIP</span>
+                    </div>
+                    <div class="court-visual">
+                        <div class="mini-field vip">
+                            <div class="mini-center"></div>
+                            <div class="mini-goals"></div>
+                        </div>
+                    </div>
+                    <div class="court-info">
+                        <div class="info-item">
+                            <i class="fas fa-users"></i>
+                            <span>12 Players</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <span>$70/hr</span>
+                        </div>
+                    </div>
+                    <button class="btn-book" onclick="selectCourt(5)">
+                        <i class="fas fa-calendar-plus"></i> Book Now
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Booking Modal -->
+    <div class="modal" id="bookingModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-calendar-check"></i> Book Court <span id="modalCourtNumber"></span></h2>
+                <button class="close-btn" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="time-slots-container">
+                    <h3><i class="fas fa-clock"></i> Select Time Slot</h3>
+                    <div class="time-slots" id="timeSlots">
+                        <!-- Time slots will be generated by JavaScript -->
+                    </div>
+                </div>
+                <div class="booking-form">
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> Your Name</label>
+                        <input type="text" id="customerName" placeholder="Enter your name" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-phone"></i> Phone Number</label>
+                        <input type="tel" id="customerPhone" placeholder="Enter phone number" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-envelope"></i> Email</label>
+                        <input type="email" id="customerEmail" placeholder="Enter email address" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-credit-card"></i> Payment Method</label>
+                        <select id="paymentMethod" required>
+                            <option value="card" selected>Card</option>
+                            <option value="cash">Pay at Venue (Cash)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="cardNumberGroup">
+                        <label><i class="fas fa-credit-card"></i> Card Number</label>
+                        <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="23" autocomplete="cc-number">
+                    </div>
+                    <div class="booking-summary">
+                        <h4>Booking Summary</h4>
+                        <div class="summary-item">
+                            <span>Court:</span>
+                            <strong id="summaryCourtNumber">-</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span>Time Slot:</span>
+                            <strong id="summaryTimeSlot">Not selected</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span>Price:</span>
+                            <strong id="summaryPrice">$0</strong>
+                        </div>
+                    </div>
+                    <button class="btn-confirm" onclick="confirmBooking()">
+                        <i class="fas fa-check-circle"></i> Pay & Confirm Booking
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3><i class="fas fa-futbol"></i> FutsalHub</h3>
+                    <p>Your premier futsal court booking platform</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <a href="index.html">Home</a>
+                    <a href="courts.html">Courts</a>
+                    <a href="bookings.html">My Bookings</a>
+                    <a href="about.html">About</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact Info</h4>
+                    <p><i class="fas fa-phone"></i> +1 234 567 8900</p>
+                    <p><i class="fas fa-envelope"></i> info@futsalhub.com</p>
+                    <p><i class="fas fa-map-marker-alt"></i> 123 Futsal Street</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Opening Hours</h4>
+                    <p>Monday - Friday: 8am - 11pm</p>
+                    <p>Saturday - Sunday: 7am - 12am</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 FutsalHub. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
