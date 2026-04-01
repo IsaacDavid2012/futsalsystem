@@ -1,6 +1,7 @@
 const express = require('express');
 const db = require('../../db');
 const { requireAuth, enforceOrigin } = require('../middleware/authentication');
+const { processPayment, processRefund } = require('../utils/paymentGateway');
 
 const router = express.Router();
 
@@ -171,7 +172,7 @@ router.get('/mine', requireAuth, (req, res) => {
   );
 });
 
-router.post('/checkout', enforceOrigin, requireAuth, (req, res) => {
+router.post('/checkout', enforceOrigin, requireAuth, async (req, res) => {
   const courtNumber = Number(req.body.courtNumber);
   const bookingDate = String(req.body.bookingDate || '');
   const timeSlot = String(req.body.timeSlot || '');
@@ -206,6 +207,27 @@ router.post('/checkout', enforceOrigin, requireAuth, (req, res) => {
   const priceCents = COURT_PRICES_CENTS[courtNumber];
   const createdAt = new Date().toISOString();
   const cardLast4 = paymentMethod === 'card' ? cardDigits.slice(-4) : null;
+
+  // Process payment if card payment is selected
+  let paymentResult = null;
+  if (paymentMethod === 'card') {
+    paymentResult = await processPayment({
+      amount: priceCents,
+      cardNumber: cardNumber,
+      cardholderName: customerName,
+      expiryMonth: req.body.expiryMonth || '12',
+      expiryYear: req.body.expiryYear || '25',
+      cvv: req.body.cvv || '123',
+      currency: 'USD',
+    });
+
+    if (!paymentResult.success) {
+      return res.status(402).json({ 
+        message: paymentResult.message,
+        paymentError: true 
+      });
+    }
+  }
 
   db.serialize(() => {
     db.run('BEGIN TRANSACTION');
@@ -252,6 +274,7 @@ router.post('/checkout', enforceOrigin, requireAuth, (req, res) => {
             }
 
             const bookingId = this.lastID;
+            const transactionId = paymentResult ? paymentResult.transactionId : null;
 
             db.run(
               `INSERT INTO payments (
@@ -286,6 +309,7 @@ router.post('/checkout', enforceOrigin, requireAuth, (req, res) => {
                       paymentStatus: 'paid',
                       paymentMethod,
                       cardLast4,
+                      transactionId,
                     },
                   });
                 });

@@ -56,6 +56,7 @@ db.serialize(() => {
       amount_cents INTEGER NOT NULL,
       payment_method TEXT NOT NULL,
       card_last4 TEXT,
+      transaction_id TEXT,
       status TEXT NOT NULL,
       refund_status TEXT NOT NULL DEFAULT 'none',
       refunded_cents INTEGER NOT NULL DEFAULT 0,
@@ -76,6 +77,7 @@ db.serialize(() => {
   safeRun("ALTER TABLE payments ADD COLUMN refund_status TEXT NOT NULL DEFAULT 'none'");
   safeRun('ALTER TABLE payments ADD COLUMN refunded_cents INTEGER NOT NULL DEFAULT 0');
   safeRun('ALTER TABLE payments ADD COLUMN refunded_at TEXT');
+  safeRun('ALTER TABLE payments ADD COLUMN transaction_id TEXT');
 
   db.run(
     `UPDATE bookings

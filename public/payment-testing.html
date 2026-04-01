@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Testing Guide - FutsalHub</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .page-title {
+            font-size: 2.5em;
+            margin: 0 0 10px 0;
+            font-weight: 700;
+        }
+
+        .page-subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .test-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .test-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-header {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-bottom: 20px;
+        }
+
+        .card-number {
+            font-family: 'Courier New', monospace;
+            font-size: 1.2em;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            word-break: break-all;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9em;
+        }
+
+        .card-status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            font-weight: 500;
+        }
+
+        .card-status.success {
+            background: rgba(34, 197, 94, 0.3);
+        }
+
+        .card-status.decline {
+            background: rgba(248, 113, 113, 0.3);
+        }
+
+        .info-box {
+            background: #f0f9ff;
+            border-left: 4px solid #3b82f6;
+            padding: 15px 20px;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+
+        .info-box strong {
+            color: #1e40af;
+        }
+
+        .code-block {
+            background: #1f2937;
+            color: #e5e7eb;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: #1f2937;
+            margin: 30px 0 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            color: #667eea;
+        }
+
+        .benefits-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .benefits-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .benefits-list li:last-child {
+            border-bottom: none;
+        }
+
+        .benefits-list i {
+            color: #22c55e;
+            margin-top: 2px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
+
+        .back-link:hover {
+            background: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-futbol"></i>
+                <h1>FutsalHub</h1>
+            </div>
+            <nav class="nav">
+                <a href="index.html" class="nav-link"><i class="fas fa-home"></i> Home</a>
+                <a href="courts.html" class="nav-link"><i class="fas fa-border-all"></i> Courts</a>
+                <a href="bookings.html" class="nav-link"><i class="fas fa-calendar-check"></i> My Bookings</a>
+                <a href="payment-testing.html" class="nav-link active"><i class="fas fa-credit-card"></i> Payment Test</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <h1 class="page-title"><i class="fas fa-credit-card"></i> Payment Gateway Testing</h1>
+            <p class="page-subtitle">Demo payment cards for testing the FutsalHub booking system</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <section class="container">
+        <!-- Overview Section -->
+        <div class="test-section">
+            <h2 class="section-title">
+                <i class="fas fa-info-circle"></i>
+                Makeshift Payment Gateway
+            </h2>
+            <p>The FutsalHub system includes a demo payment gateway that simulates payment processing. This allows you to test the complete booking flow without connecting to a real payment processor.</p>
+            
+            <div class="info-box">
+                <strong>Important:</strong> This is a demonstration system. No real charges will be made. All payment processing is simulated for testing purposes only.
+            </div>
+
+            <h3 style="margin-top: 30px; color: #1f2937;">Features:</h3>
+            <ul class="benefits-list">
+                <li><i class="fas fa-check"></i> Complete card validation using Luhn algorithm</li>
+                <li><i class="fas fa-check"></i> Realistic payment processing delays (1 second)</li>
+                <li><i class="fas fa-check"></i> Generates unique transaction IDs for each payment</li>
+                <li><i class="fas fa-check"></i> Test card patterns for success and decline scenarios</li>
+                <li><i class="fas fa-check"></i> Full refund simulation on booking cancellation</li>
+                <li><i class="fas fa-check"></i> Database integration for payment history</li>
+            </ul>
+        </div>
+
+        <!-- Test Cards Section -->
+        <div class="test-section">
+            <h2 class="section-title">
+                <i class="fas fa-credit-card"></i>
+                Test Card Numbers
+            </h2>
+            <p>Use these card numbers to test different payment scenarios. All cards require:</p>
+            <ul style="margin-bottom: 20px;">
+                <li><strong>Expiry:</strong> Any future date (e.g., 12/25)</li>
+                <li><strong>CVV:</strong> Any 3-digit number (e.g., 123)</li>
+                <li><strong>Cardholder Name:</strong> Your name</li>
+            </ul>
+
+            <div class="test-cards-grid">
+                <!-- Success Cards -->
+                <div class="card">
+                    <div class="card-header">VISA - SUCCESS</div>
+                    <div class="card-number">4111 1111 1111 1111</div>
+                    <div class="card-footer">
+                        <span>12/25</span>
+                        <span class="card-status success">Approved</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">MASTERCARD - SUCCESS</div>
+                    <div class="card-number">5555 5555 5555 4444</div>
+                    <div class="card-footer">
+                        <span>12/25</span>
+                        <span class="card-status success">Approved</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">AMEX - SUCCESS</div>
+                    <div class="card-number">3782 822463 10005</div>
+                    <div class="card-footer">
+                        <span>12/25</span>
+                        <span class="card-status success">Approved</span>
+                    </div>
+                </div>
+
+                <!-- Decline Cards -->
+                <div class="card" style="background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);">
+                    <div class="card-header">VISA - DECLINED</div>
+                    <div class="card-number">4000 0000 0000 0002</div>
+                    <div class="card-footer">
+                        <span>12/25</span>
+                        <span class="card-status decline">Declined</span>
+                    </div>
+                </div>
+
+                <div class="card" style="background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);">
+                    <div class="card-header">MASTERCARD - DECLINED</div>
+                    <div class="card-number">5555 5555 5555 4445</div>
+                    <div class="card-footer">
+                        <span>12/25</span>
+                        <span class="card-status decline">Declined</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- How It Works Section -->
+        <div class="test-section">
+            <h2 class="section-title">
+                <i class="fas fa-cogs"></i>
+                How Payment Processing Works
+            </h2>
+
+            <h3 style="color: #1f2937; margin-top: 20px;">Payment Flow:</h3>
+            <ol style="line-height: 2;">
+                <li><strong>User fills booking form</strong> with court, time, and personal details</li>
+                <li><strong>Payment gateway validates</strong> card number using Luhn algorithm</li>
+                <li><strong>Payment is simulated</strong> (1 second delay for realism)</li>
+                <li><strong>Unique transaction ID</strong> is generated (format: TX_XXXXXXXX)</li>
+                <li><strong>Booking is created</strong> in database with payment status</li>
+                <li><strong>Payment record stored</strong> with transaction details</li>
+                <li><strong>Confirmation shown</strong> to user with transaction ID</li>
+            </ol>
+
+            <h3 style="color: #1f2937; margin-top: 30px;">Refund Simulation:</h3>
+            <p>When you cancel a booking from "My Bookings" page:</p>
+            <ul style="line-height: 2;">
+                <li>If cancelled <strong>24+ hours before</strong>: Full refund (100%)</li>
+                <li>If cancelled <strong>2-24 hours before</strong>: Partial refund (50%)</li>
+                <li>If cancelled <strong>&lt;2 hours before</strong>: No refund (0%)</li>
+            </ul>
+        </div>
+
+        <!-- API Implementation Section -->
+        <div class="test-section">
+            <h2 class="section-title">
+                <i class="fas fa-code"></i>
+                Backend Implementation
+            </h2>
+
+            <p>The payment gateway is implemented as a modular utility that can be easily replaced with a real payment provider:</p>
+
+            <div class="code-block">
+// File: src/utils/paymentGateway.js
+const processPayment = async (options) => {
+  const {
+    amount,
+    cardNumber,
+    cardholderName,
+    expiryMonth,
+    expiryYear,
+    cvv,
+    currency = 'USD',
+  } = options;
+
+  // Validates card using Luhn algorithm
+  // Checks expiry and CVV
+  // Returns transactionId and payment status
+};
+
+const processRefund = async (options) => {
+  const {
+    originalTransactionId,
+    amount,
+    reason,
+  } = options;
+
+  // Simulates refund processing
+  // Returns refundId and status
+};
+            </div>
+
+            <div class="info-box">
+                <strong>To integrate with a real payment provider:</strong>
+                <ul style="margin: 10px 0 0 0; padding-left: 20px;">
+                    <li>Replace the mock implementation in paymentGateway.js</li>
+                    <li>Add API credentials to environment variables</li>
+                    <li>Update card validation to provider's requirements</li>
+                    <li>No changes needed to frontend or routing logic</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Testing Checklist Section -->
+        <div class="test-section">
+            <h2 class="section-title">
+                <i class="fas fa-tasks"></i>
+                Testing Checklist
+            </h2>
+
+            <h3 style="color: #1f2937; margin-top: 20px;">Test Scenarios:</h3>
+            <ul class="benefits-list">
+                <li><i class="fas fa-circle"></i> <strong>Successful Booking</strong> - Use an approved card, complete booking</li>
+                <li><i class="fas fa-circle"></i> <strong>Failed Payment</strong> - Use a declined card, verify error message</li>
+                <li><i class="fas fa-circle"></i> <strong>View My Bookings</strong> - Check transaction details and payment status</li>
+                <li><i class="fas fa-circle"></i> <strong>Full Refund</strong> - Cancel a booking 24+ hours before time</li>
+                <li><i class="fas fa-circle"></i> <strong>Partial Refund</strong> - Cancel a booking 2-24 hours before</li>
+                <li><i class="fas fa-circle"></i> <strong>No Refund</strong> - Cancel a booking less than 2 hours before</li>
+                <li><i class="fas fa-circle"></i> <strong>Admin Overview</strong> - Check revenue and utilization metrics</li>
+                <li><i class="fas fa-circle"></i> <strong>CSV Export</strong> - Export booking data from admin dashboard</li>
+            </ul>
+        </div>
+
+        <!-- Footer Link -->
+        <div style="text-align: center; padding: 30px 0;">
+            <a href="index.html" class="back-link">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3><i class="fas fa-futbol"></i> FutsalHub</h3>
+                    <p>Your premier futsal court booking platform</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <a href="index.html">Home</a>
+                    <a href="courts.html">Courts</a>
+                    <a href="bookings.html">My Bookings</a>
+                    <a href="payment-testing.html">Payment Test</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact Info</h4>
+                    <p><i class="fas fa-phone"></i> +1 234 567 8900</p>
+                    <p><i class="fas fa-envelope"></i> info@futsalhub.com</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Opening Hours</h4>
+                    <p>Monday - Friday: 8am - 11pm</p>
+                    <p>Saturday - Sunday: 7am - 12am</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 FutsalHub. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
