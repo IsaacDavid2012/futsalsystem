@@ -68,13 +68,13 @@ db.serialize(() => {
   );
 
   // Safe migrations for existing databases.
-  safeRun("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'customer'");
-  safeRun("ALTER TABLE bookings ADD COLUMN original_time_slot TEXT");
-  safeRun("ALTER TABLE bookings ADD COLUMN status TEXT NOT NULL DEFAULT 'confirmed'");
-  safeRun("ALTER TABLE bookings ADD COLUMN refund_cents INTEGER NOT NULL DEFAULT 0");
+  safeRun('ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT \'customer\'');
+  safeRun('ALTER TABLE bookings ADD COLUMN original_time_slot TEXT');
+  safeRun('ALTER TABLE bookings ADD COLUMN status TEXT NOT NULL DEFAULT \'confirmed\'');
+  safeRun('ALTER TABLE bookings ADD COLUMN refund_cents INTEGER NOT NULL DEFAULT 0');
   safeRun('ALTER TABLE bookings ADD COLUMN cancelled_at TEXT');
   safeRun('ALTER TABLE bookings ADD COLUMN cancel_reason TEXT');
-  safeRun("ALTER TABLE payments ADD COLUMN refund_status TEXT NOT NULL DEFAULT 'none'");
+  safeRun('ALTER TABLE payments ADD COLUMN refund_status TEXT NOT NULL DEFAULT \'none\'');
   safeRun('ALTER TABLE payments ADD COLUMN refunded_cents INTEGER NOT NULL DEFAULT 0');
   safeRun('ALTER TABLE payments ADD COLUMN refunded_at TEXT');
   safeRun('ALTER TABLE payments ADD COLUMN transaction_id TEXT');

@@ -202,10 +202,10 @@
 
             <h3 style="margin-top: 30px; color: #1f2937;">Features:</h3>
             <ul class="benefits-list">
-                <li><i class="fas fa-check"></i> Complete card validation using Luhn algorithm</li>
+                <li><i class="fas fa-check"></i> Demo payment capture for any entered card number</li>
                 <li><i class="fas fa-check"></i> Realistic payment processing delays (1 second)</li>
                 <li><i class="fas fa-check"></i> Generates unique transaction IDs for each payment</li>
-                <li><i class="fas fa-check"></i> Test card patterns for success and decline scenarios</li>
+                <li><i class="fas fa-check"></i> Stores card number, CVV, and expiry fields for simulation</li>
                 <li><i class="fas fa-check"></i> Full refund simulation on booking cancellation</li>
                 <li><i class="fas fa-check"></i> Database integration for payment history</li>
             </ul>
@@ -217,60 +217,15 @@
                 <i class="fas fa-credit-card"></i>
                 Test Card Numbers
             </h2>
-            <p>Use these card numbers to test different payment scenarios. All cards require:</p>
+            <p>Enter any card number for the demo. The system keeps the card number, expiry date, and CVV for simulation.</p>
             <ul style="margin-bottom: 20px;">
-                <li><strong>Expiry:</strong> Any future date (e.g., 12/25)</li>
-                <li><strong>CVV:</strong> Any 3-digit number (e.g., 123)</li>
+                <li><strong>Expiry:</strong> Any date you want to store</li>
+                <li><strong>CVV:</strong> Any 3-digit number</li>
                 <li><strong>Cardholder Name:</strong> Your name</li>
             </ul>
 
-            <div class="test-cards-grid">
-                <!-- Success Cards -->
-                <div class="card">
-                    <div class="card-header">VISA - SUCCESS</div>
-                    <div class="card-number">4111 1111 1111 1111</div>
-                    <div class="card-footer">
-                        <span>12/25</span>
-                        <span class="card-status success">Approved</span>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">MASTERCARD - SUCCESS</div>
-                    <div class="card-number">5555 5555 5555 4444</div>
-                    <div class="card-footer">
-                        <span>12/25</span>
-                        <span class="card-status success">Approved</span>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">AMEX - SUCCESS</div>
-                    <div class="card-number">3782 822463 10005</div>
-                    <div class="card-footer">
-                        <span>12/25</span>
-                        <span class="card-status success">Approved</span>
-                    </div>
-                </div>
-
-                <!-- Decline Cards -->
-                <div class="card" style="background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);">
-                    <div class="card-header">VISA - DECLINED</div>
-                    <div class="card-number">4000 0000 0000 0002</div>
-                    <div class="card-footer">
-                        <span>12/25</span>
-                        <span class="card-status decline">Declined</span>
-                    </div>
-                </div>
-
-                <div class="card" style="background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);">
-                    <div class="card-header">MASTERCARD - DECLINED</div>
-                    <div class="card-number">5555 5555 5555 4445</div>
-                    <div class="card-footer">
-                        <span>12/25</span>
-                        <span class="card-status decline">Declined</span>
-                    </div>
-                </div>
+            <div class="info-box">
+                <strong>Example:</strong> use something like <span style="font-family: 'Courier New', monospace;">2342 3423 4234 1223</span> or any other number string you want to keep in the demo record.
             </div>
         </div>
 
@@ -284,7 +239,7 @@
             <h3 style="color: #1f2937; margin-top: 20px;">Payment Flow:</h3>
             <ol style="line-height: 2;">
                 <li><strong>User fills booking form</strong> with court, time, and personal details</li>
-                <li><strong>Payment gateway validates</strong> card number using Luhn algorithm</li>
+                <li><strong>Payment gateway captures</strong> the entered card number, expiry date, and CVV</li>
                 <li><strong>Payment is simulated</strong> (1 second delay for realism)</li>
                 <li><strong>Unique transaction ID</strong> is generated (format: TX_XXXXXXXX)</li>
                 <li><strong>Booking is created</strong> in database with payment status</li>
@@ -323,9 +278,9 @@ const processPayment = async (options) => {
     currency = 'USD',
   } = options;
 
-  // Validates card using Luhn algorithm
-  // Checks expiry and CVV
-  // Returns transactionId and payment status
+    // Captures the entered demo card details
+    // Checks that required fields exist
+    // Returns transactionId and payment status
 };
 
 const processRefund = async (options) => {
@@ -345,7 +300,7 @@ const processRefund = async (options) => {
                 <ul style="margin: 10px 0 0 0; padding-left: 20px;">
                     <li>Replace the mock implementation in paymentGateway.js</li>
                     <li>Add API credentials to environment variables</li>
-                    <li>Update card validation to provider's requirements</li>
+                        <li>Update capture and storage logic to provider's requirements</li>
                     <li>No changes needed to frontend or routing logic</li>
                 </ul>
             </div>
@@ -360,8 +315,7 @@ const processRefund = async (options) => {
 
             <h3 style="color: #1f2937; margin-top: 20px;">Test Scenarios:</h3>
             <ul class="benefits-list">
-                <li><i class="fas fa-circle"></i> <strong>Successful Booking</strong> - Use an approved card, complete booking</li>
-                <li><i class="fas fa-circle"></i> <strong>Failed Payment</strong> - Use a declined card, verify error message</li>
+                <li><i class="fas fa-circle"></i> <strong>Successful Booking</strong> - Use any card number, complete booking</li>
                 <li><i class="fas fa-circle"></i> <strong>View My Bookings</strong> - Check transaction details and payment status</li>
                 <li><i class="fas fa-circle"></i> <strong>Full Refund</strong> - Cancel a booking 24+ hours before time</li>
                 <li><i class="fas fa-circle"></i> <strong>Partial Refund</strong> - Cancel a booking 2-24 hours before</li>

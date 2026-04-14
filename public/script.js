@@ -392,7 +392,7 @@ async function loadMyBookings() {
           ${isCancelled ? `<p><strong>Refund:</strong> ${refundText}</p>` : ""}
           ${booking.cancelReason ? `<p><strong>Reason:</strong> ${booking.cancelReason}</p>` : ""}
           <span class="status-pill ${booking.paymentStatus}">${booking.paymentStatus}</span>
-          ${!isCancelled ? `<button class="cancel-booking-btn" onclick="cancelBooking(${booking.id})"><i class="fas fa-undo"></i> Cancel & Refund</button>` : ""}
+          ${!isCancelled ? `<button class="cancel-booking-btn" type="button" data-booking-id="${booking.id}"><i class="fas fa-undo"></i> Cancel & Refund</button>` : ""}
         </article>
       `;
     })
@@ -553,6 +553,51 @@ async function cancelBookingAsAdmin(bookingId) {
     booking.cancelReason = reason;
     await loadAdminOverview();
     showNotification("Admin cancellation applied (demo mode).", "success");
+  }
+}
+
+function bindCourtBookingButtons() {
+  document.querySelectorAll("[data-court]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const courtNumber = Number(button.dataset.court);
+      if (courtNumber) {
+        selectCourt(courtNumber);
+      }
+    });
+  });
+}
+
+function bindStaticActionButtons() {
+  byId("bookingCloseBtn")?.addEventListener("click", closeModal);
+  byId("bookingConfirmBtn")?.addEventListener("click", confirmBooking);
+  byId("bookingRefreshBtn")?.addEventListener("click", refreshBookings);
+  byId("adminRefreshBtn")?.addEventListener("click", loadAdminOverview);
+  byId("adminExportBtn")?.addEventListener("click", exportAdminCsv);
+}
+
+function bindDelegatedActionButtons() {
+  const myBookingsList = byId("myBookingsList");
+  if (myBookingsList) {
+    myBookingsList.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-booking-id]");
+      if (!button) {
+        return;
+      }
+
+      cancelBooking(Number(button.dataset.bookingId));
+    });
+  }
+
+  const adminBookingsTableBody = byId("adminBookingsTableBody");
+  if (adminBookingsTableBody) {
+    adminBookingsTableBody.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-admin-booking-id]");
+      if (!button) {
+        return;
+      }
+
+      cancelBookingAsAdmin(Number(button.dataset.adminBookingId));
+    });
   }
 }
 
@@ -828,7 +873,7 @@ function renderAdminOverview(payload) {
         ? `Card ****${booking.cardLast4 || "----"}`
         : (booking.paymentMethod || "-");
       const action = booking.status === "confirmed"
-        ? `<button class="admin-action-btn" onclick="cancelBookingAsAdmin(${booking.id})">Cancel/Refund</button>`
+        ? `<button class="admin-action-btn" type="button" data-admin-booking-id="${booking.id}">Cancel/Refund</button>`
         : "-";
       return `
         <tr>
@@ -955,6 +1000,9 @@ async function bootstrap() {
     }
 
     attachLogoutAction();
+    bindCourtBookingButtons();
+    bindStaticActionButtons();
+    bindDelegatedActionButtons();
     bindDateNavigation();
     bindModalBehavior();
 

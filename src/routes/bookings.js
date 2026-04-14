@@ -76,8 +76,8 @@ const validateBookingInput = ({
   }
 
   if (paymentMethod === 'card') {
-    const digitsOnly = String(cardNumber || '').replace(/\D/g, '');
-    if (digitsOnly.length < 12 || digitsOnly.length > 19) {
+    const rawCardNumber = String(cardNumber || '').trim();
+    if (!rawCardNumber) {
       return 'Invalid card number.';
     }
   }
@@ -222,9 +222,9 @@ router.post('/checkout', enforceOrigin, requireAuth, async (req, res) => {
     });
 
     if (!paymentResult.success) {
-      return res.status(402).json({ 
+      return res.status(402).json({
         message: paymentResult.message,
-        paymentError: true 
+        paymentError: true
       });
     }
   }
@@ -233,7 +233,7 @@ router.post('/checkout', enforceOrigin, requireAuth, async (req, res) => {
     db.run('BEGIN TRANSACTION');
 
     db.get(
-      "SELECT id FROM bookings WHERE court_number = ? AND booking_date = ? AND original_time_slot = ? AND status = 'confirmed'",
+      'SELECT id FROM bookings WHERE court_number = ? AND booking_date = ? AND original_time_slot = ? AND status = \'confirmed\'',
       [courtNumber, bookingDate, timeSlot],
       (checkErr, existing) => {
         if (checkErr) {
@@ -279,9 +279,9 @@ router.post('/checkout', enforceOrigin, requireAuth, async (req, res) => {
             db.run(
               `INSERT INTO payments (
                 booking_id, user_id, amount_cents, payment_method,
-                card_last4, status, created_at
-              ) VALUES (?, ?, ?, ?, ?, 'paid', ?)`,
-              [bookingId, req.user.id, priceCents, paymentMethod, cardLast4, createdAt],
+                card_last4, transaction_id, status, created_at
+              ) VALUES (?, ?, ?, ?, ?, ?, 'paid', ?)`,
+              [bookingId, req.user.id, priceCents, paymentMethod, cardLast4, transactionId, createdAt],
               (insertPaymentErr) => {
                 if (insertPaymentErr) {
                   db.run('ROLLBACK');
@@ -331,12 +331,14 @@ router.post('/:id/cancel', enforceOrigin, requireAuth, (req, res) => {
   }
 
   db.get(
-    `SELECT id, user_id, court_number, booking_date, original_time_slot,
-            price_cents, status
-     FROM bookings
-     WHERE id = ?`,
+    `SELECT b.id, b.user_id, b.court_number, b.booking_date, b.original_time_slot,
+            b.price_cents, b.status,
+            p.payment_method, p.transaction_id
+     FROM bookings b
+     LEFT JOIN payments p ON p.booking_id = b.id
+     WHERE b.id = ?`,
     [bookingId],
-    (findErr, booking) => {
+    async (findErr, booking) => {
       if (findErr) {
         return res.status(500).json({ message: 'Server error.' });
       }
@@ -376,6 +378,20 @@ router.post('/:id/cancel', enforceOrigin, requireAuth, (req, res) => {
           ? 'completed'
           : 'partial';
 
+      let refundMeta = null;
+      if (refundCents > 0 && booking.payment_method === 'card') {
+        const originalTransactionId = booking.transaction_id || `LEGACY_TX_${booking.id}`;
+        refundMeta = await processRefund({
+          originalTransactionId,
+          amount: refundCents,
+          reason: cancelReason,
+        });
+
+        if (!refundMeta.success) {
+          return res.status(502).json({ message: 'Refund simulation failed. Please retry cancellation.' });
+        }
+      }
+
       db.serialize(() => {
         db.run('BEGIN TRANSACTION');
 
@@ -402,7 +418,13 @@ router.post('/:id/cancel', enforceOrigin, requireAuth, (req, res) => {
                    refunded_cents = ?,
                    refunded_at = ?
                WHERE booking_id = ?`,
-              [paymentStatus, refundStatus, refundCents, cancelledAt, bookingId],
+              [
+                paymentStatus,
+                refundStatus,
+                refundCents,
+                refundMeta ? refundMeta.timestamp : refundCents > 0 ? cancelledAt : null,
+                bookingId,
+              ],
               (updatePaymentErr) => {
                 if (updatePaymentErr) {
                   db.run('ROLLBACK');
@@ -425,6 +447,7 @@ router.post('/:id/cancel', enforceOrigin, requireAuth, (req, res) => {
                       status: 'cancelled',
                       paymentStatus,
                       refund: formatPrice(refundCents),
+                      refundId: refundMeta ? refundMeta.refundId : null,
                     },
                   });
                 });

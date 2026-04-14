@@ -108,6 +108,13 @@ app.get('/dashboard', (_req, res) => {
 });
 
 /**
+ * Dedicated admin portal route
+ */
+app.get('/admin', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin-portal.html'));
+});
+
+/**
  * API Routes
  */
 app.use('/api/auth', authRoutes);

@@ -6,49 +6,18 @@
 
 const crypto = require('crypto');
 
-// Simulated payment responses based on card patterns
-const MOCK_RESPONSES = {
-  // Test card patterns
-  '4111111111111111': { success: true, message: 'Payment approved' },
-  '5555555555554444': { success: true, message: 'Payment approved' },
-  '378282246310005': { success: true, message: 'Payment approved' },
-  // Declined cards
-  '4000000000000002': { success: false, message: 'Card declined' },
-  '5555555555554445': { success: false, message: 'Insufficient funds' },
-  // Default for demo
-};
-
 const MOCK_PROCESSING_DELAY = 1000; // ms
 
 /**
- * Validate card format
- * @param {string} cardNumber - Card number (digits only)
+ * Validate card format for demo payments
+ * @param {string} cardNumber - Card number entered by the user
  * @returns {object} - { valid: boolean, error?: string }
  */
 const validateCardNumber = (cardNumber) => {
-  const digitsOnly = String(cardNumber || '').replace(/\D/g, '');
+  const rawValue = String(cardNumber || '').trim();
 
-  if (!digitsOnly || digitsOnly.length < 12 || digitsOnly.length > 19) {
-    return { valid: false, error: 'Invalid card number length' };
-  }
-
-  // Luhn algorithm
-  let sum = 0;
-  let isEven = false;
-  for (let i = digitsOnly.length - 1; i >= 0; i--) {
-    let digit = parseInt(digitsOnly[i], 10);
-    if (isEven) {
-      digit *= 2;
-      if (digit > 9) {
-        digit -= 9;
-      }
-    }
-    sum += digit;
-    isEven = !isEven;
-  }
-
-  if (sum % 10 !== 0) {
-    return { valid: false, error: 'Invalid card number (Luhn check failed)' };
+  if (!rawValue) {
+    return { valid: false, error: 'Card number is required' };
   }
 
   return { valid: true };
@@ -82,10 +51,11 @@ const processPayment = async (options) => {
         return;
       }
 
-      const digitsOnly = String(cardNumber || '').replace(/\D/g, '');
+      const rawCardNumber = String(cardNumber || '').trim();
+      const digitsOnly = rawCardNumber.replace(/\D/g, '');
 
       // Validate card
-      const validation = validateCardNumber(digitsOnly);
+      const validation = validateCardNumber(rawCardNumber);
       if (!validation.valid) {
         resolve({
           success: false,
@@ -122,15 +92,12 @@ const processPayment = async (options) => {
         return;
       }
 
-      // Check if card is in test patterns
-      const response = MOCK_RESPONSES[digitsOnly] || { success: true, message: 'Payment approved' };
-
       const transactionId = `TX_${crypto.randomBytes(8).toString('hex').toUpperCase()}`;
 
       resolve({
-        success: response.success,
-        message: response.message,
-        transactionId: response.success ? transactionId : null,
+        success: true,
+        message: 'Payment approved',
+        transactionId,
         cardLast4: digitsOnly.slice(-4),
         amount: (amount / 100).toFixed(2), // Convert from cents
         currency,
