@@ -4,9 +4,61 @@ require('dotenv').config();
  * Application configuration
  */
 
+const parseCsv = (value) => String(value || '')
+  .split(',')
+  .map((item) => item.trim())
+  .filter(Boolean);
+
+const defaultAllowedOrigins = [
+  'https://futsal.creativeclicks.tech',
+  'http://localhost:3010',
+  'http://127.0.0.1:3010',
+  'http://192.168.0.3:3010',
+];
+
+const configuredAllowedOrigins = parseCsv(process.env.ALLOWED_ORIGINS);
+const singleAllowedOrigin = String(process.env.ALLOWED_ORIGIN || '').trim();
+const allowedOrigins = configuredAllowedOrigins.length > 0
+  ? configuredAllowedOrigins
+  : singleAllowedOrigin
+    ? [singleAllowedOrigin]
+    : defaultAllowedOrigins;
+
+const allowLocalhostOrigin = process.env.ALLOW_LOCALHOST_ORIGIN
+  ? process.env.ALLOW_LOCALHOST_ORIGIN === 'true'
+  : true;
+const allowIpOrigin = process.env.ALLOW_IP_ORIGIN
+  ? process.env.ALLOW_IP_ORIGIN === 'true'
+  : true;
+
+const localhostOriginPattern = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i;
+const ipv4OriginPattern = /^https?:\/\/((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})(:\d+)?$/i;
+const ipv6OriginPattern = /^https?:\/\/\[[0-9a-f:]+\](:\d+)?$/i;
+
+const isOriginAllowed = (origin) => {
+  // Requests without an Origin header are typically same-host server calls.
+  if (!origin) {
+    return true;
+  }
+
+  if (allowedOrigins.includes(origin)) {
+    return true;
+  }
+
+  if (allowLocalhostOrigin && localhostOriginPattern.test(origin)) {
+    return true;
+  }
+
+  if (allowIpOrigin && (ipv4OriginPattern.test(origin) || ipv6OriginPattern.test(origin))) {
+    return true;
+  }
+
+  return false;
+};
+
 const config = {
   env: process.env.NODE_ENV || 'development',
-  port: process.env.PORT || 3000,
+  port: process.env.PORT || 3010,
   isProduction: process.env.NODE_ENV === 'production',
 
   // JWT Configuration
@@ -28,7 +80,10 @@ const config = {
 
   // CORS Configuration
   cors: {
-    allowedOrigin: process.env.ALLOWED_ORIGIN || '',
+    allowedOrigins,
+    allowLocalhost: allowLocalhostOrigin,
+    allowIpAddress: allowIpOrigin,
+    isOriginAllowed,
     credentials: true,
   },
 

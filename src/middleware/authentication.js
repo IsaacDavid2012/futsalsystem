@@ -29,12 +29,8 @@ const requireAuth = (req, res, next) => {
  * CORS origin enforcement middleware
  */
 const enforceOrigin = (req, res, next) => {
-  if (!config.isProduction || !config.cors.allowedOrigin) {
-    return next();
-  }
-
   const origin = req.get('origin');
-  if (origin && origin !== config.cors.allowedOrigin) {
+  if (!config.cors.isOriginAllowed(origin)) {
     logger.warn('CORS violation', {
       origin,
       ip: req.ip,

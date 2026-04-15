@@ -33,13 +33,13 @@ npm install
 npm run dev
 ```
 
-Server will start on `http://localhost:3000`
+Server will start on `http://localhost:3010`
 
 ### Access the App
 
-- **Login Page**: http://localhost:3000/login.html
-- **Signup Page**: http://localhost:3000/signup.html
-- **Dashboard**: http://localhost:3000/dashboard (requires authentication)
+- **Login Page**: http://localhost:3010/login.html
+- **Signup Page**: http://localhost:3010/signup.html
+- **Dashboard**: http://localhost:3010/dashboard (requires authentication)
 
 ## 📋 Environment Configuration
 
@@ -53,12 +53,19 @@ Create a `.env` file with:
 
 ```env
 NODE_ENV=production
-PORT=3000
+PORT=3010
 JWT_SECRET=replace_with_a_long_random_secret_at_least_32_chars
-ALLOWED_ORIGIN=https://your-domain.com
+ALLOWED_ORIGINS=https://futsal.creativeclicks.tech,http://localhost:3010,http://127.0.0.1:3010,http://YOUR_SERVER_IP:3010
+ALLOW_LOCALHOST_ORIGIN=true
+ALLOW_IP_ORIGIN=true
 COOKIE_SECURE=true
 COOKIE_SAME_SITE=strict
 ```
+
+Notes:
+- `ALLOWED_ORIGINS` supports a comma-separated allowlist.
+- Keep `https://futsal.creativeclicks.tech` in production.
+- Replace `YOUR_SERVER_IP` with your real server IP.
 
 **⚠️ Important**: Generate a strong JWT_SECRET:
 ```bash
@@ -115,7 +122,7 @@ node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 
 **Signup**
 ```bash
-curl -X POST http://localhost:3000/api/auth/signup \
+curl -X POST http://localhost:3010/api/auth/signup \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
@@ -125,7 +132,7 @@ curl -X POST http://localhost:3000/api/auth/signup \
 
 **Login**
 ```bash
-curl -X POST http://localhost:3000/api/auth/login \
+curl -X POST http://localhost:3010/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
@@ -135,7 +142,7 @@ curl -X POST http://localhost:3000/api/auth/login \
 
 **Get Current User**
 ```bash
-curl -X GET http://localhost:3000/api/auth/me \
+curl -X GET http://localhost:3010/api/auth/me \
   -H "Cookie: auth=<token>"
 ```
 

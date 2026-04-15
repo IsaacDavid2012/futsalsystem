@@ -48,11 +48,18 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
 // CORS middleware (for future API clients)
-app.use(cors(config.isProduction ? {
-  origin: config.cors.allowedOrigin || false,
-  credentials: true,
-} : {
-  credentials: true,
+app.use(cors({
+  origin: (origin, callback) => {
+    if (config.cors.isOriginAllowed(origin)) {
+      return callback(null, true);
+    }
+
+    logger.warn('Blocked by CORS policy', {
+      origin,
+    });
+    return callback(null, false);
+  },
+  credentials: config.cors.credentials,
 }));
 
 // Serve static files
