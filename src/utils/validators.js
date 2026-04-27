@@ -6,7 +6,7 @@ const Joi = require('joi');
 
 const signupSchema = Joi.object({
   email: Joi.string()
-    .email()
+    .email({ tlds: { allow: false } })
     .lowercase()
     .trim()
     .required()
@@ -31,7 +31,7 @@ const signupSchema = Joi.object({
 
 const loginSchema = Joi.object({
   email: Joi.string()
-    .email()
+    .email({ tlds: { allow: false } })
     .lowercase()
     .trim()
     .required()

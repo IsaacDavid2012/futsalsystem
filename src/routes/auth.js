@@ -13,7 +13,7 @@ const logger = require('../utils/logger');
 const router = express.Router();
 
 const adminEmails = new Set(
-  String(process.env.ADMIN_EMAILS || 'admin@localhost')
+  String(process.env.ADMIN_EMAILS || 'admin@localhost.com')
     .split(',')
     .map((value) => value.trim().toLowerCase())
     .filter(Boolean)

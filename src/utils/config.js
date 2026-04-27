@@ -62,7 +62,7 @@ const config = {
   isProduction: process.env.NODE_ENV === 'production',
 
   admin: {
-    emails: String(process.env.ADMIN_EMAILS || 'admin@localhost')
+    emails: String(process.env.ADMIN_EMAILS || 'admin@localhost.com')
       .split(',')
       .map((value) => value.trim().toLowerCase())
       .filter(Boolean),
