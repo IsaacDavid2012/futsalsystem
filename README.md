@@ -1,19 +1,16 @@
-# Futsal Management System - Production-Ready Foundation
+# Futsal Management System - Complete Platform
 
-A secure, well-architected Node.js/Express authentication system with modern development practices. Perfect foundation for building a comprehensive futsal court management and booking platform.
+A comprehensive, secure, and production-ready Node.js/Express application for managing futsal court bookings. It features a complete user authentication system, court booking engine, simulated payment gateway, automated email notifications, and a full-featured administrative dashboard.
 
 ## ✨ Key Features
 
-- **Secure Authentication**: JWT-based sessions with HTTP-only cookies
-- **Modular Architecture**: Clean code organization with middleware, routes, and utilities
-- **Input Validation**: Joi-based validation with detailed error messages
-- **Security Hardening**: Helmet.js, CORS, rate limiting, origin checks
-- **Logging**: Winston-based structured logging for production debugging
-- **Code Quality**: ESLint and Prettier configuration for consistent code
-- **Testing**: Unit tests for validators with Node.js built-in test runner
-- **CI/CD Ready**: GitHub Actions workflow for automated testing
-- **SQLite Database**: Automatic schema creation with bcrypt password hashing
-- **Environment Management**: Secure .env configuration with production validation
+- **Secure Authentication**: JWT-based sessions with HTTP-only cookies, password hashing (bcrypt), and role-based access control (Admin vs. Customer).
+- **Court Booking Engine**: Real-time availability checking, booking management, and tiered pricing for different courts.
+- **Payment & Refund Simulation**: Card payment validation and processing simulation, along with automated refund calculations based on cancellation timing.
+- **Admin Dashboard**: Comprehensive overview of revenue, active/cancelled bookings, court utilization metrics, and user management (role assignments, analytics).
+- **Automated Email Notifications**: Integration with Google SMTP (via Nodemailer) for sending automatic booking confirmation emails.
+- **Robust Security**: Helmet.js for security headers, CORS origin checks, rate limiting, and Joi-based input validation.
+- **Code Quality & CI/CD**: Pre-configured ESLint, Prettier, Node.js built-in test runner, and a GitHub Actions workflow.
 
 ## 🚀 Quick Start
 
@@ -24,8 +21,19 @@ A secure, well-architected Node.js/Express authentication system with modern dev
 ### Installation
 
 ```bash
+git clone <repository-url>
+cd futsalsystem
 npm install
 ```
+
+### Environment Setup
+
+Create a `.env` file based on the provided `.env.example`:
+
+```bash
+cp .env.example .env
+```
+*(See the Environment Configuration section below for details).*
 
 ### Development
 
@@ -33,267 +41,187 @@ npm install
 npm run dev
 ```
 
-Server will start on `http://localhost:3010`
+The server will start on `http://localhost:3010` (or your configured `PORT`).
 
 ### Access the App
-
-- **Login Page**: http://localhost:3010/login.html
-- **Signup Page**: http://localhost:3010/signup.html
-- **Dashboard**: http://localhost:3010/dashboard (requires authentication)
+- **Home/Login Page**: `http://localhost:3010/login.html`
+- **Dashboard (Customer)**: `http://localhost:3010/home` (Requires authentication)
+- **Admin Portal**: `http://localhost:3010/admin` (Requires authentication & Admin role)
 
 ## 📋 Environment Configuration
 
-### Development (Local)
-
-No setup required - development defaults are used.
-
-### Production
-
-Create a `.env` file with:
+Create a `.env` file with the following variables:
 
 ```env
-NODE_ENV=production
+# Application Core
+NODE_ENV=development # Set to 'production' in production environment
 PORT=3010
-JWT_SECRET=replace_with_a_long_random_secret_at_least_32_chars
-ALLOWED_ORIGINS=https://futsal.creativeclicks.tech,http://localhost:3010,http://127.0.0.1:3010,http://YOUR_SERVER_IP:3010
-ALLOW_LOCALHOST_ORIGIN=true
-ALLOW_IP_ORIGIN=true
-COOKIE_SECURE=true
+JWT_SECRET=your_super_secret_jwt_key_here
+
+# Security
+ALLOWED_ORIGIN=http://localhost:3010
+COOKIE_SECURE=false # Set to true in production if using HTTPS
 COOKIE_SAME_SITE=strict
+
+# Admin Setup (Automatically created on initial boot)
+ADMIN_EMAILS=admin@localhost
+ADMIN_PASSWORD=your_secure_admin_password
+ADMIN_NAME=Admin User
+
+# Email Notifications (Google SMTP)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-gmail-app-password
+MAIL_FROM="FutsalHub <your-email@gmail.com>"
+BOOKING_NOTIFICATION_EMAIL=your-email@gmail.com
 ```
 
-Notes:
-- `ALLOWED_ORIGINS` supports a comma-separated allowlist.
-- Keep `https://futsal.creativeclicks.tech` in production.
-- Replace `YOUR_SERVER_IP` with your real server IP.
-
-**⚠️ Important**: Generate a strong JWT_SECRET:
-```bash
-node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
-```
+**⚠️ Important**: 
+1. Use an [App Password](https://support.google.com/accounts/answer/185833?hl=en) for `SMTP_PASS` if using Gmail.
+2. In production, ensure `JWT_SECRET` is strong and random.
+3. `COOKIE_SECURE` should be `true` in production to enforce HTTPS-only cookies.
 
 ## 📁 Project Structure
 
-```
+```text
 .
 ├── src/
-│   ├── middleware/          # Express middleware
-│   │   ├── authentication.js # Auth and CORS
-│   │   ├── errorHandler.js   # Error handling
-│   │   ├── rateLimiter.js    # Rate limiting
-│   │   └── validation.js     # Joi validation middleware
-│   ├── routes/
-│   │   └── auth.js          # Authentication endpoints
+│   ├── middleware/          # Express middlewares (Auth, Validation, Error Handling)
+│   ├── routes/              # API Route definitions
+│   │   ├── admin.js         # Admin endpoints (users, overview analytics)
+│   │   ├── auth.js          # Authentication (login, signup, me)
+│   │   └── bookings.js      # Booking engine, checkout, cancellations
 │   └── utils/
-│       ├── config.js        # Configuration management
-│       ├── logger.js        # Winston logger
-│       └── validators.js    # Joi schemas
-├── tests/
-│   └── validators.test.js   # Unit tests
-├── public/
+│       ├── config.js        # Environment config loader & validator
+│       ├── logger.js        # Winston structured logging
+│       ├── mailer.js        # Nodemailer email configurations
+│       ├── paymentGateway.js# Payment & refund simulator
+│       └── validators.js    # Joi validation schemas
+├── public/                  # Static frontend assets (HTML, CSS, JS)
+│   ├── admin.html           # Admin Dashboard UI
+│   ├── index.html           # Customer Dashboard UI
 │   ├── login.html           # Login UI
 │   ├── signup.html          # Signup UI
-│   └── js/                  # Frontend JavaScript
-├── views/
-│   └── dashboard.html       # Protected dashboard
-├── server.js                # Main application entry
-├── db.js                    # SQLite setup
-└── package.json
+│   ├── admin.js             # Admin Dashboard logic
+│   └── script.js            # Main application logic
+├── tests/                   # Unit tests
+├── db.js                    # SQLite database initialization
+├── server.js                # Express application entry point
+└── package.json             # Dependencies and scripts
 ```
 
 ## 🔐 API Endpoints
 
-### Authentication
-
+### Authentication (`/api/auth`)
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| POST | `/api/auth/signup` | No | Create new account |
-| POST | `/api/auth/login` | No | Authenticate user |
-| GET | `/api/auth/me` | **Yes** | Get current user |
-| POST | `/api/auth/logout` | No | Clear auth cookie |
+| POST | `/signup` | No | Create a new user account |
+| POST | `/login` | No | Authenticate user & set JWT cookie |
+| GET | `/me` | **Yes** | Retrieve current user profile |
+| POST | `/logout` | No | Clear the authentication cookie |
 
-### Health Check
+### Bookings (`/api/bookings`)
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/` | **Yes** | Get all bookings for a specific date (Query: `?date=YYYY-MM-DD`) |
+| GET | `/mine` | **Yes** | Get all bookings for the authenticated user |
+| POST | `/checkout` | **Yes** | Create a new booking and process payment |
+| POST | `/:id/cancel`| **Yes** | Cancel a booking and process potential refunds |
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/health` | API status |
+### Admin (`/api/admin`)
+| Method | Path | Admin | Description |
+|--------|------|-------|-------------|
+| GET | `/users` | **Yes** | List all users and their booking statistics |
+| PATCH | `/users/:id/role`| **Yes** | Change a user's role (`admin` or `customer`) |
+| GET | `/overview` | **Yes** | Get analytics (revenue, utilization) between `startDate` & `endDate` |
 
-### Request Examples
+## 📝 Database Schema
 
-**Signup**
-```bash
-curl -X POST http://localhost:3010/api/auth/signup \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "user@example.com",
-    "password": "SecurePass123"
-  }'
-```
+The system uses SQLite (stored locally at `data/auth.db`) with automatic schema setup.
 
-**Login**
-```bash
-curl -X POST http://localhost:3010/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "user@example.com",
-    "password": "SecurePass123"
-  }'
-```
+- **users**: Stores user credentials, roles (`admin` or `customer`), and profile data.
+- **bookings**: Stores court bookings, time slots, pricing, cancellation reasons, and status (`confirmed`, `cancelled`).
+- **payments**: Tracks payment transactions, methods (`card`, `cash`), partial/full refunds, and timestamps.
 
-**Get Current User**
-```bash
-curl -X GET http://localhost:3010/api/auth/me \
-  -H "Cookie: auth=<token>"
-```
-
-## 📝 Database
-
-SQLite database is automatically created at `data/auth.db` with:
-
-- **users** table
-  - `id` (INTEGER PRIMARY KEY)
-  - `email` (TEXT UNIQUE)
-  - `password_hash` (TEXT)
-  - `created_at` (TEXT)
-
-## 🧪 Testing
+## 🧪 Testing & Code Quality
 
 ### Run Tests
 ```bash
 npm test
 ```
 
-### Validator Tests
-Includes comprehensive tests for email validation, password strength, and edge cases.
-
-## 🔍 Code Quality
-
-### Lint Code
+### Code Formatting & Linting
 ```bash
-npm run lint
-```
-
-### Fix Linting Issues
-```bash
-npm run lint:fix
-```
-
-### Format Code
-```bash
-npx prettier --write "**/*.js"
+npm run lint         # Run ESLint
+npm run lint:fix     # Auto-fix lint issues
+npx prettier --write "**/*.js" # Format code
 ```
 
 ## 🔒 Security Features
 
-- ✅ HTTP-only cookies (prevents XSS token theft)
-- ✅ Rate limiting on auth endpoints
-- ✅ CORS origin validation
-- ✅ Password hashing with bcrypt (12 rounds)
-- ✅ Security headers via Helmet.js
-- ✅ Content Security Policy
-- ✅ X-Frame-Options: DENY
-- ✅ Input validation with Joi
-- ✅ Environment variable validation
-
-## 📊 Logging
-
-### Development
-Console logging with color-coded levels (debug, info, warn, error).
-
-### Production
-- Console output for real-time monitoring
-- File logging to `logs/` directory
-- Separate error and combined logs with rotation
+- ✅ **HTTP-Only Cookies**: Prevents client-side script access to JWTs (XSS protection).
+- ✅ **Helmet.js & CSP**: Enforces secure HTTP headers and Content Security Policies.
+- ✅ **CORS & Origin Checks**: Strictly allows requests only from configured origins.
+- ✅ **Bcrypt Hashing**: Passwords hashed with 12 rounds of salt.
+- ✅ **Input Validation**: Joi middleware prevents injection and invalid payload attacks.
+- ✅ **Role-Based Access Control**: Middleware rigorously checks for admin privileges on sensitive routes.
 
 ## 🔄 CI/CD Pipeline
 
-Automated testing on every push to `main` and `develop`:
-- Runs on Node.js 18 and 20
-- Linting checks
-- Unit tests
-- Security audit (moderate level)
-
-View workflow: [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
-
-## 📦 Dependencies
-
-### Production
-- `express` - Web framework
-- `helmet` - Security headers
-- `jsonwebtoken` - JWT handling
-- `bcryptjs` - Password hashing
-- `joi` - Input validation
-- `sqlite3` - Database
-- `winston` - Logging
-- `cookie-parser` - Cookie handling
-- `cors` - CORS support
-
-### Development
-- `eslint` - Code linting
-- `prettier` - Code formatting
+A GitHub Actions workflow is included (`.github/workflows/ci.yml`) that automatically runs on pushes to `main` and `develop`:
+- Runs tests across multiple Node.js versions (18, 20).
+- Performs ESLint checks.
+- Runs `npm audit` for security vulnerability scanning.
 
 ## 🚀 Deployment
 
-### Heroku
-```bash
-heroku create your-futsal-app
-git push heroku main
-```
+The project is stateless regarding sessions (uses JWT) but stateful regarding the database (SQLite). For true scalability, consider swapping SQLite with PostgreSQL.
 
-### Docker (Optional)
+### Render / Railway Setup:
+1. Connect your GitHub repository.
+2. Ensure you have persistent storage (a volume) mapped to the `data/` directory so your SQLite database isn't lost on restarts.
+3. Configure Environment Variables matching the `.env` requirements.
+4. Set the Start Command to `npm start`.
 
-Create `Dockerfile`:
+### Docker (Optional):
 ```dockerfile
 FROM node:20-alpine
 WORKDIR /app
-COPY package.json .
+COPY package*.json ./
 RUN npm ci --production
 COPY . .
-EXPOSE 3000
+# Ensure the data directory exists for SQLite
+RUN mkdir -p data
+EXPOSE 3010
 CMD ["npm", "start"]
 ```
 
-### Railway/Render
-1. Connect GitHub repository
-2. Set environment variables
-3. Deploy
+## 🎯 Current Status & Roadmap
 
-## 🎯 Next Steps
+- [x] User authentication & session management
+- [x] Secure API structure & Validation
+- [x] Court Booking system & constraints
+- [x] Payment simulation & dynamic refund logic
+- [x] Admin dashboard & analytics overview
+- [x] Automated Email notifications via SMTP
+- [ ] Implement robust API documentation (e.g., Swagger/OpenAPI)
+- [ ] Court management (CRUD operations for courts & dynamic pricing)
+- [ ] External payment provider integration (Stripe / PayPal)
 
-This foundation includes:
-- ✅ User authentication & session management
-- ✅ Secure API structure
-- ✅ Code organization best practices
-- ✅ Logging and error handling
-- ✅ Input validation
-- ✅ CI/CD pipeline
+## 🤝 Contributing
 
-Ready to add:
-- [ ] Court management (CRUD operations)
-- [ ] Booking system
-- [ ] Schedule management
-- [ ] Admin dashboard
-- [ ] Payment integration
-- [ ] Email notifications
-- [ ] API documentation (Swagger)
-- [ ] Advanced analytics
+1. Clone the repository and install dependencies.
+2. Create a feature branch (`git checkout -b feature/amazing-feature`).
+3. Adhere to the existing code style (Prettier & ESLint).
+4. Run `npm test` to ensure tests pass.
+5. Commit your changes and open a Pull Request.
 
 ## 📄 License
 
 ISC
 
-## 🤝 Contributing
-
-1. Follow the existing code style (ESLint + Prettier)
-2. Run tests before pushing: `npm test`
-3. Add tests for new features
-4. Update documentation
-
-## 📞 Support
-
-For issues or questions, create a GitHub issue.
-
 ---
 
-**Built with security, scalability, and developer experience in mind.** ⚡
-
+**Built with security, scalability, and an excellent developer experience in mind.** ⚡
