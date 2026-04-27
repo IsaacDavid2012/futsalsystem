@@ -6,6 +6,7 @@ const state = {
   myBookings: [],
   me: null,
   adminOverview: null,
+  users: [],
   demoMode: false,
   demoNoticeShown: false,
 };
@@ -431,10 +432,10 @@ async function selectCourt(courtNumber) {
   }
 
   if (hasElement("customerName")) {
-    byId("customerName").value = "";
+    byId("customerName").value = state.me?.fullName || state.me?.name || "";
   }
   if (hasElement("customerPhone")) {
-    byId("customerPhone").value = "";
+    byId("customerPhone").value = state.me?.phone || "";
   }
   if (hasElement("customerEmail")) {
     byId("customerEmail").value = state.me ? state.me.email : "";
@@ -573,6 +574,8 @@ function bindStaticActionButtons() {
   byId("bookingRefreshBtn")?.addEventListener("click", refreshBookings);
   byId("adminRefreshBtn")?.addEventListener("click", loadAdminOverview);
   byId("adminExportBtn")?.addEventListener("click", exportAdminCsv);
+  byId("adminUserSearch")?.addEventListener("input", () => renderAdminUsers({ users: state.users }));
+  byId("adminUsersRefreshBtn")?.addEventListener("click", loadAdminUsers);
 }
 
 function bindDelegatedActionButtons() {
@@ -597,6 +600,18 @@ function bindDelegatedActionButtons() {
       }
 
       cancelBookingAsAdmin(Number(button.dataset.adminBookingId));
+    });
+  }
+
+  const adminUsersTableBody = byId("adminUsersTableBody");
+  if (adminUsersTableBody) {
+    adminUsersTableBody.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-user-role-id]");
+      if (!button) {
+        return;
+      }
+
+      updateUserRole(Number(button.dataset.userRoleId), button.dataset.targetRole);
     });
   }
 }
@@ -893,6 +908,58 @@ function renderAdminOverview(payload) {
   }
 }
 
+function renderAdminUsers(payload) {
+  const users = Array.isArray(payload?.users) ? payload.users : [];
+  state.users = users;
+
+  if (hasElement("adminTotalUsers")) {
+    byId("adminTotalUsers").textContent = String(users.length);
+  }
+
+  if (hasElement("adminAdminUsers")) {
+    byId("adminAdminUsers").textContent = String(users.filter((user) => user.role === "admin").length);
+  }
+
+  const tableBody = byId("adminUsersTableBody");
+  if (!tableBody) {
+    return;
+  }
+
+  const q = String(byId("adminUserSearch")?.value || "").trim().toLowerCase();
+  const filtered = users.filter((user) => {
+    if (!q) {
+      return true;
+    }
+
+    return [user.fullName, user.email, user.phone, user.role].join(" ").toLowerCase().includes(q);
+  });
+
+  if (!filtered.length) {
+    tableBody.innerHTML = '<tr><td colspan="9">No matching users found.</td></tr>';
+    return;
+  }
+
+  tableBody.innerHTML = filtered.map((user) => {
+    const roleAction = user.role === "admin"
+      ? `<button class="admin-action-btn secondary" type="button" data-user-role-id="${user.id}" data-target-role="customer">Demote</button>`
+      : `<button class="admin-action-btn" type="button" data-user-role-id="${user.id}" data-target-role="admin">Promote</button>`;
+
+    return `
+      <tr>
+        <td>${user.id}</td>
+        <td>${user.fullName || "-"}</td>
+        <td>${user.email}</td>
+        <td>${user.phone || "-"}</td>
+        <td>${user.role}</td>
+        <td>${user.totalBookings}</td>
+        <td>${user.activeBookings}</td>
+        <td>${user.lastBookingDate || "-"}</td>
+        <td>${roleAction}</td>
+      </tr>
+    `;
+  }).join("");
+}
+
 function exportAdminCsv() {
   if (!state.adminOverview || !Array.isArray(state.adminOverview.bookings)) {
     showNotification("Load admin data before exporting.", "error");
@@ -989,6 +1056,48 @@ async function loadAdminOverview() {
   }
 }
 
+async function loadAdminUsers() {
+  const btn = byId("adminUsersRefreshBtn");
+  const original = btn ? btn.innerHTML : "";
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+  }
+
+  try {
+    const payload = await apiFetch('/api/admin/users');
+    renderAdminUsers(payload);
+  } catch (error) {
+    if (!isMissingFeatureApi(error)) {
+      showNotification(error.message || 'Could not load users.', 'error');
+      return;
+    }
+
+    enableDemoMode();
+    renderAdminUsers({ users: state.users });
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = original;
+    }
+  }
+}
+
+async function updateUserRole(userId, role) {
+  try {
+    await apiFetch(`/api/admin/users/${userId}/role`, {
+      method: 'PATCH',
+      body: JSON.stringify({ role }),
+    });
+
+    showNotification('User role updated.', 'success');
+    await loadAdminUsers();
+  } catch (error) {
+    showNotification(error.message || 'Could not update user role.', 'error');
+  }
+}
+
 async function bootstrap() {
   try {
     await ensureAuthenticated();
@@ -1009,6 +1118,7 @@ async function bootstrap() {
     if (hasElement("adminDashboard")) {
       initializeAdminDateDefaults();
       await loadAdminOverview();
+      await loadAdminUsers();
       return;
     }
 

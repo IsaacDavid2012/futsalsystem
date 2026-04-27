@@ -61,6 +61,29 @@ const config = {
   port: process.env.PORT || 3010,
   isProduction: process.env.NODE_ENV === 'production',
 
+  admin: {
+    emails: String(process.env.ADMIN_EMAILS || 'admin@localhost')
+      .split(',')
+      .map((value) => value.trim().toLowerCase())
+      .filter(Boolean),
+    password: process.env.ADMIN_PASSWORD || 'IDC-201Two',
+    name: process.env.ADMIN_NAME || 'Admin User',
+    phone: process.env.ADMIN_PHONE || '',
+  },
+
+  mail: {
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: Number(process.env.SMTP_PORT || 465),
+    secure: process.env.SMTP_SECURE
+      ? process.env.SMTP_SECURE === 'true'
+      : true,
+    user: process.env.SMTP_USER || '',
+    pass: process.env.SMTP_PASS || '',
+    from: process.env.MAIL_FROM || process.env.SMTP_USER || 'no-reply@localhost',
+    notificationEmail: process.env.BOOKING_NOTIFICATION_EMAIL || process.env.SMTP_USER || '',
+    enabled: Boolean(process.env.SMTP_USER && process.env.SMTP_PASS),
+  },
+
   // JWT Configuration
   jwt: {
     secret: process.env.JWT_SECRET,
@@ -100,16 +123,8 @@ const config = {
   },
 };
 
-// Validate required environment variables in production
-if (config.isProduction) {
-  if (!config.jwt.secret) {
-    throw new Error('JWT_SECRET is required in production');
-  }
-}
-
-// Warn about development defaults
-if (!config.isProduction && !config.jwt.secret) {
-  console.warn('⚠️  JWT_SECRET not set. Using insecure development fallback.');
+if (!config.jwt.secret) {
+  throw new Error('JWT_SECRET is required.');
 }
 
 module.exports = config;

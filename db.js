@@ -1,6 +1,8 @@
 const fs = require('fs');
 const path = require('path');
+const bcrypt = require('bcryptjs');
 const sqlite3 = require('sqlite3').verbose();
+const config = require('./src/utils/config');
 
 const dbPath = path.join(__dirname, 'data', 'auth.db');
 fs.mkdirSync(path.dirname(dbPath), { recursive: true });
@@ -21,6 +23,8 @@ db.serialize(() => {
       email TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
       role TEXT NOT NULL DEFAULT 'customer',
+      full_name TEXT,
+      phone TEXT,
       created_at TEXT NOT NULL
     )`
   );
@@ -69,6 +73,8 @@ db.serialize(() => {
 
   // Safe migrations for existing databases.
   safeRun('ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT \'customer\'');
+  safeRun('ALTER TABLE users ADD COLUMN full_name TEXT');
+  safeRun('ALTER TABLE users ADD COLUMN phone TEXT');
   safeRun('ALTER TABLE bookings ADD COLUMN original_time_slot TEXT');
   safeRun('ALTER TABLE bookings ADD COLUMN status TEXT NOT NULL DEFAULT \'confirmed\'');
   safeRun('ALTER TABLE bookings ADD COLUMN refund_cents INTEGER NOT NULL DEFAULT 0');
@@ -90,6 +96,20 @@ db.serialize(() => {
      SET role = 'customer'
      WHERE role IS NULL OR role = ''`
   );
+
+  const adminPasswordHash = bcrypt.hashSync(config.admin.password, 12);
+  config.admin.emails.forEach((email) => {
+    db.run(
+      `INSERT INTO users (email, password_hash, role, full_name, phone, created_at)
+       VALUES (?, ?, 'admin', ?, ?, ?)
+       ON CONFLICT(email) DO UPDATE SET
+         password_hash = excluded.password_hash,
+         role = 'admin',
+         full_name = COALESCE(NULLIF(users.full_name, ''), excluded.full_name),
+         phone = COALESCE(NULLIF(users.phone, ''), excluded.phone)` ,
+      [email, adminPasswordHash, config.admin.name, config.admin.phone, new Date().toISOString()]
+    );
+  });
 });
 
 module.exports = db;

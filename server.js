@@ -13,6 +13,7 @@ const cors = require('cors');
 const config = require('./src/utils/config');
 const logger = require('./src/utils/logger');
 const { errorHandler } = require('./src/middleware/errorHandler');
+const { requireAuth, requireAdmin } = require('./src/middleware/authentication');
 const jwt = require('jsonwebtoken');
 
 // Import routes
@@ -98,7 +99,7 @@ app.get('/home', (req, res) => {
   }
 
   try {
-    jwt.verify(token, config.jwt.secret || 'dev_secret_change_me');
+    jwt.verify(token, config.jwt.secret);
     return res.sendFile(path.join(__dirname, 'public', 'index.html'));
   } catch {
     logger.warn('Home access denied - invalid token');
@@ -117,8 +118,8 @@ app.get('/dashboard', (_req, res) => {
 /**
  * Dedicated admin portal route
  */
-app.get('/admin', (_req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'admin-portal.html'));
+app.get('/admin', requireAuth, requireAdmin, (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
 /**
@@ -142,7 +143,12 @@ app.use(errorHandler);
 
 // Start server
 const PORT = config.port;
-app.listen(PORT, () => {
-  logger.info(`🚀 Server running on http://localhost:${PORT}`);
-  logger.debug(`Environment: ${config.env}`);
-});
+
+if (require.main === module) {
+  app.listen(PORT, () => {
+    logger.info(`🚀 Server running on http://localhost:${PORT}`);
+    logger.debug(`Environment: ${config.env}`);
+  });
+}
+
+module.exports = app;

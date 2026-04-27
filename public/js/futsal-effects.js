@@ -1,4 +1,4 @@
-// Stadium entrance effects - Black & White Theme
+// Stadium entrance effects - light home-page theme
 document.addEventListener("DOMContentLoaded", () => {
   // Create floating particles effect
   const createParticles = () => {
@@ -19,8 +19,8 @@ document.addEventListener("DOMContentLoaded", () => {
       particle.style.cssText = `
         position: absolute;
         font-size: ${Math.random() * 1.2 + 0.4}rem;
-        opacity: ${Math.random() * 0.15 + 0.05};
-        color: ${Math.random() > 0.5 ? '#ffffff' : '#cccccc'};
+        opacity: ${Math.random() * 0.14 + 0.04};
+        color: ${Math.random() > 0.5 ? '#00b894' : '#2d3436'};
         left: ${Math.random() * 100}vw;
         top: ${Math.random() * 100}vh;
         animation: futsalFloat ${Math.random() * 25 + 20}s ease-in-out infinite;
@@ -43,33 +43,32 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       
       .btn-primary {
-        transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
+        transition: all 0.35s ease !important;
       }
       
       .auth-card:hover {
         transform: translateY(-2px) scale(1.005);
         box-shadow: 
-          0 30px 100px rgba(0, 0, 0, 0.9),
-          0 0 50px rgba(255, 255, 255, 0.15),
-          inset 0 1px 0 rgba(255, 255, 255, 0.2);
+          0 30px 90px rgba(17, 39, 29, 0.18),
+          inset 0 1px 0 rgba(255, 255, 255, 0.95);
       }
       
       input:focus {
         transform: scale(1.01);
         box-shadow: 
-          0 0 0 4px rgba(255, 255, 255, 0.1),
-          0 8px 25px rgba(255, 255, 255, 0.08) !important;
+          0 0 0 4px rgba(0, 184, 148, 0.12),
+          0 8px 25px rgba(0, 145, 110, 0.08) !important;
       }
       
       a {
-        color: #ffffff !important;
+        color: #00916e !important;
         position: relative;
         transition: all 0.3s ease;
       }
       
       a:hover {
-        color: #cccccc !important;
-        text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        color: #00b894 !important;
+        text-shadow: none;
       }
     `;
     document.head.appendChild(vibeStyle);

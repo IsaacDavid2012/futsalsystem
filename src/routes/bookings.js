@@ -2,6 +2,8 @@ const express = require('express');
 const db = require('../../db');
 const { requireAuth, enforceOrigin } = require('../middleware/authentication');
 const { processPayment, processRefund } = require('../utils/paymentGateway');
+const { sendBookingConfirmationEmail } = require('../utils/mailer');
+const logger = require('../utils/logger');
 
 const router = express.Router();
 
@@ -277,42 +279,68 @@ router.post('/checkout', enforceOrigin, requireAuth, async (req, res) => {
             const transactionId = paymentResult ? paymentResult.transactionId : null;
 
             db.run(
-              `INSERT INTO payments (
-                booking_id, user_id, amount_cents, payment_method,
-                card_last4, transaction_id, status, created_at
-              ) VALUES (?, ?, ?, ?, ?, ?, 'paid', ?)`,
-              [bookingId, req.user.id, priceCents, paymentMethod, cardLast4, transactionId, createdAt],
-              (insertPaymentErr) => {
-                if (insertPaymentErr) {
+              'UPDATE users SET full_name = ?, phone = ? WHERE id = ?',
+              [customerName, customerPhone, req.user.id],
+              (profileErr) => {
+                if (profileErr) {
                   db.run('ROLLBACK');
-                  return res.status(500).json({ message: 'Payment could not be processed.' });
+                  return res.status(500).json({ message: 'Server error.' });
                 }
 
-                db.run('COMMIT', (commitErr) => {
-                  if (commitErr) {
-                    db.run('ROLLBACK');
-                    return res.status(500).json({ message: 'Server error.' });
-                  }
+                db.run(
+                  `INSERT INTO payments (
+                    booking_id, user_id, amount_cents, payment_method,
+                    card_last4, transaction_id, status, created_at
+                  ) VALUES (?, ?, ?, ?, ?, ?, 'paid', ?)`,
+                  [bookingId, req.user.id, priceCents, paymentMethod, cardLast4, transactionId, createdAt],
+                  (insertPaymentErr) => {
+                    if (insertPaymentErr) {
+                      db.run('ROLLBACK');
+                      return res.status(500).json({ message: 'Payment could not be processed.' });
+                    }
 
-                  return res.status(201).json({
-                    message: 'Booking confirmed and payment received.',
-                    booking: {
-                      id: bookingId,
-                      courtNumber,
-                      bookingDate,
-                      timeSlot,
-                      customerName,
-                      customerPhone,
-                      customerEmail: req.user.email,
-                      price: formatPrice(priceCents),
-                      status: 'confirmed',
-                      paymentStatus: 'paid',
-                      paymentMethod,
-                      cardLast4,
-                      transactionId,
-                    },
-                  });
-                });
+                    db.run('COMMIT', (commitErr) => {
+                      if (commitErr) {
+                        db.run('ROLLBACK');
+                        return res.status(500).json({ message: 'Server error.' });
+                      }
+
+                      const booking = {
+                        id: bookingId,
+                        courtNumber,
+                        bookingDate,
+                        timeSlot,
+                        customerName,
+                        customerPhone,
+                        customerEmail: req.user.email,
+                        price: formatPrice(priceCents),
+                        status: 'confirmed',
+                        paymentStatus: 'paid',
+                        paymentMethod,
+                        cardLast4,
+                        transactionId,
+                      };
+
+                      void sendBookingConfirmationEmail({
+                        to: req.user.email,
+                        booking,
+                        name: customerName,
+                        paymentMethod,
+                        cardLast4,
+                      }).catch((mailErr) => {
+                        logger.warn('Booking confirmation email failed', {
+                          error: mailErr.message,
+                          bookingId,
+                        });
+                      });
+
+                      return res.status(201).json({
+                        message: 'Booking confirmed and payment received.',
+                        booking,
+                      });
+                    });
+                  }
+                );
               }
             );
           }

@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - FutsalHub</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>FutsalHub Admin</title>
+    <link rel="stylesheet" href="/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
@@ -16,99 +16,135 @@
                 <h1>FutsalHub</h1>
             </div>
             <nav class="nav">
-                <a href="index.html" class="nav-link"><i class="fas fa-home"></i> Home</a>
-                <a href="courts.html" class="nav-link"><i class="fas fa-border-all"></i> Courts</a>
-                <a href="bookings.html" class="nav-link"><i class="fas fa-calendar-check"></i> My Bookings</a>
-                <a href="about.html" class="nav-link"><i class="fas fa-info-circle"></i> About</a>
-                <a href="admin.html" class="nav-link active"><i class="fas fa-user-shield"></i> Admin</a>
+                <a href="/index.html" class="nav-link"><i class="fas fa-home"></i> Home</a>
+                <a href="/courts.html" class="nav-link"><i class="fas fa-border-all"></i> Courts</a>
+                <a href="/bookings.html" class="nav-link"><i class="fas fa-calendar-check"></i> My Bookings</a>
+                <a href="/about.html" class="nav-link"><i class="fas fa-info-circle"></i> About</a>
+                <a href="/admin" class="nav-link active"><i class="fas fa-user-shield"></i> Admin</a>
             </nav>
         </div>
     </header>
 
-    <section class="page-header">
-        <div class="container">
-            <h1 class="page-title">Admin Analytics</h1>
-            <p class="page-subtitle">Bookings, revenue, refunds, and court utilization</p>
-        </div>
-    </section>
-
-    <section class="admin-section" id="adminDashboard">
-        <div class="container">
-            <div class="admin-controls">
-                <div class="form-group">
-                    <label><i class="fas fa-calendar-alt"></i> Start Date</label>
-                    <input type="date" id="adminStartDate">
+    <main class="admin-page" id="adminDashboard">
+        <section class="admin-hero">
+            <div class="container admin-hero-grid">
+                <div class="admin-hero-copy">
+                    <span class="hero-eyebrow"><i class="fas fa-user-shield"></i> Admin Control Room</span>
+                    <h1>Manage courts, users, bookings, and revenue from one dashboard.</h1>
+                    <p>
+                        The admin workspace uses the same FutsalHub visual language as the home and login pages, with the tools you need to keep the venue running smoothly.
+                    </p>
+                    <div class="hero-actions">
+                        <button class="btn-refresh" type="button" id="adminRefreshBtn"><i class="fas fa-sync-alt"></i> Refresh Overview</button>
+                        <button class="btn-refresh secondary" type="button" id="adminUsersRefreshBtn"><i class="fas fa-users"></i> Refresh Users</button>
+                        <button class="btn-refresh secondary" type="button" id="adminExportBtn"><i class="fas fa-file-csv"></i> Export CSV</button>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label><i class="fas fa-calendar-alt"></i> End Date</label>
-                    <input type="date" id="adminEndDate">
+                <div class="admin-hero-card">
+                    <p id="adminIdentity">Checking access...</p>
+                    <div class="admin-mini-grid">
+                        <div>
+                            <span>Bookings</span>
+                            <strong id="adminTotalBookings">0</strong>
+                        </div>
+                        <div>
+                            <span>Users</span>
+                            <strong id="adminTotalUsers">0</strong>
+                        </div>
+                        <div>
+                            <span>Admins</span>
+                            <strong id="adminAdminUsers">0</strong>
+                        </div>
+                        <div>
+                            <span>Net Revenue</span>
+                            <strong id="adminNetRevenue">$0.00</strong>
+                        </div>
+                    </div>
                 </div>
-                <button class="btn-refresh" type="button" id="adminRefreshBtn">
-                    <i class="fas fa-sync-alt"></i> Refresh Overview
-                </button>
-                <button class="btn-refresh" type="button" id="adminExportBtn">
-                    <i class="fas fa-file-csv"></i> Export CSV
-                </button>
             </div>
+        </section>
 
-            <div class="admin-metrics">
-                <article class="admin-metric-card">
-                    <h3>Total Bookings</h3>
-                    <p id="adminTotalBookings">0</p>
-                </article>
-                <article class="admin-metric-card">
-                    <h3>Active Bookings</h3>
-                    <p id="adminActiveBookings">0</p>
-                </article>
-                <article class="admin-metric-card">
-                    <h3>Cancelled Bookings</h3>
-                    <p id="adminCancelledBookings">0</p>
-                </article>
-                <article class="admin-metric-card">
-                    <h3>Gross Revenue</h3>
-                    <p id="adminGrossRevenue">$0.00</p>
-                </article>
-                <article class="admin-metric-card">
-                    <h3>Refunded</h3>
-                    <p id="adminRefunded">$0.00</p>
-                </article>
-                <article class="admin-metric-card">
-                    <h3>Net Revenue</h3>
-                    <p id="adminNetRevenue">$0.00</p>
-                </article>
-            </div>
+        <section class="admin-section">
+            <div class="container">
+                <div class="admin-controls">
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar-alt"></i> Start Date</label>
+                        <input type="date" id="adminStartDate">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar-alt"></i> End Date</label>
+                        <input type="date" id="adminEndDate">
+                    </div>
+                </div>
 
-            <div class="admin-layout">
-                <section class="admin-panel">
-                    <h2><i class="fas fa-chart-pie"></i> Court Utilization</h2>
-                    <div id="adminUtilizationList" class="utilization-list"></div>
-                </section>
+                <div class="admin-metrics">
+                    <article class="admin-metric-card"><h3>Total Bookings</h3><p id="adminTotalBookings">0</p></article>
+                    <article class="admin-metric-card"><h3>Active Bookings</h3><p id="adminActiveBookings">0</p></article>
+                    <article class="admin-metric-card"><h3>Cancelled Bookings</h3><p id="adminCancelledBookings">0</p></article>
+                    <article class="admin-metric-card"><h3>Gross Revenue</h3><p id="adminGrossRevenue">$0.00</p></article>
+                    <article class="admin-metric-card"><h3>Refunded</h3><p id="adminRefunded">$0.00</p></article>
+                    <article class="admin-metric-card"><h3>Net Revenue</h3><p id="adminNetRevenue">$0.00</p></article>
+                </div>
 
-                <section class="admin-panel">
-                    <h2><i class="fas fa-table"></i> Booking Records</h2>
+                <div class="admin-layout">
+                    <section class="admin-panel accent-panel">
+                        <h2><i class="fas fa-chart-pie"></i> Court Utilization</h2>
+                        <div id="adminUtilizationList" class="utilization-list"></div>
+                    </section>
+
+                    <section class="admin-panel">
+                        <div class="panel-header-row">
+                            <h2><i class="fas fa-table"></i> Booking Records</h2>
+                        </div>
+                        <div class="admin-table-wrap">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Date</th>
+                                        <th>Court</th>
+                                        <th>Slot</th>
+                                        <th>Customer</th>
+                                        <th>Status</th>
+                                        <th>Payment</th>
+                                        <th>Amount</th>
+                                        <th>Refund</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminBookingsTableBody"></tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+
+                <section class="admin-panel users-panel">
+                    <div class="panel-header-row">
+                        <h2><i class="fas fa-users-cog"></i> User Management</h2>
+                        <input id="adminUserSearch" type="search" placeholder="Search users by name, email, phone, or role" />
+                    </div>
                     <div class="admin-table-wrap">
                         <table class="admin-table">
                             <thead>
                                 <tr>
                                     <th>ID</th>
-                                    <th>Date</th>
-                                    <th>Court</th>
-                                    <th>Slot</th>
-                                    <th>Customer</th>
-                                    <th>Status</th>
-                                    <th>Payment</th>
-                                    <th>Amount</th>
-                                    <th>Refund</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Role</th>
+                                    <th>Bookings</th>
+                                    <th>Active</th>
+                                    <th>Last Booking</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
-                            <tbody id="adminBookingsTableBody"></tbody>
+                            <tbody id="adminUsersTableBody"></tbody>
                         </table>
                     </div>
                 </section>
             </div>
-        </div>
-    </section>
+        </section>
+    </main>
 
     <footer class="footer">
         <div class="container">
@@ -118,6 +154,6 @@
         </div>
     </footer>
 
-    <script src="script.js"></script>
+    <script src="/script.js"></script>
 </body>
 </html>

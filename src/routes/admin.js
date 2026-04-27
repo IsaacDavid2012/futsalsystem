@@ -1,6 +1,6 @@
 const express = require('express');
 const db = require('../../db');
-const { requireAuth } = require('../middleware/authentication');
+const { requireAuth, requireAdmin } = require('../middleware/authentication');
 
 const router = express.Router();
 
@@ -21,25 +21,79 @@ const daysBetweenInclusive = (startDate, endDate) => {
   return Math.floor((endDate.getTime() - startDate.getTime()) / oneDay) + 1;
 };
 
-const requireAdmin = (req, res, next) => {
-  if (req.user.role === 'admin') {
-    return next();
+router.get('/users', requireAuth, requireAdmin, (_req, res) => {
+  db.all(
+    `SELECT
+       u.id,
+       u.email,
+       u.role,
+       u.full_name,
+       u.phone,
+       u.created_at,
+       COUNT(b.id) AS total_bookings,
+       SUM(CASE WHEN b.status = 'confirmed' THEN 1 ELSE 0 END) AS active_bookings,
+       SUM(CASE WHEN b.status = 'cancelled' THEN 1 ELSE 0 END) AS cancelled_bookings,
+       COALESCE(SUM(b.price_cents), 0) AS total_spend_cents,
+       COALESCE(SUM(b.refund_cents), 0) AS total_refund_cents,
+       MAX(b.booking_date) AS last_booking_date
+     FROM users u
+     LEFT JOIN bookings b ON b.user_id = u.id
+     GROUP BY u.id
+     ORDER BY u.created_at DESC`,
+    [],
+    (err, rows) => {
+      if (err) {
+        return res.status(500).json({ message: 'Server error.' });
+      }
+
+      return res.json({
+        users: rows.map((row) => ({
+          id: row.id,
+          email: row.email,
+          role: row.role,
+          fullName: row.full_name || '',
+          phone: row.phone || '',
+          createdAt: row.created_at,
+          totalBookings: row.total_bookings || 0,
+          activeBookings: row.active_bookings || 0,
+          cancelledBookings: row.cancelled_bookings || 0,
+          totalSpend: formatPrice(row.total_spend_cents || 0),
+          totalRefund: formatPrice(row.total_refund_cents || 0),
+          lastBookingDate: row.last_booking_date || null,
+        })),
+      });
+    }
+  );
+});
+
+router.patch('/users/:id/role', requireAuth, requireAdmin, (req, res) => {
+  const userId = Number(req.params.id);
+  const role = String(req.body.role || '').trim().toLowerCase();
+
+  if (!Number.isInteger(userId) || userId <= 0) {
+    return res.status(400).json({ message: 'Invalid user id.' });
   }
 
-  db.get('SELECT role FROM users WHERE id = ?', [req.user.id], (err, row) => {
+  if (!['admin', 'customer'].includes(role)) {
+    return res.status(400).json({ message: 'Invalid role.' });
+  }
+
+  if (userId === req.user.id) {
+    return res.status(400).json({ message: 'You cannot change your own role.' });
+  }
+
+  db.run('UPDATE users SET role = ? WHERE id = ?', [role, userId], function (err) {
     if (err) {
       return res.status(500).json({ message: 'Server error.' });
     }
-    if (!row) {
-      return res.status(401).json({ message: 'Unauthorized.' });
+
+    if (!this.changes) {
+      return res.status(404).json({ message: 'User not found.' });
     }
-    if (row.role !== 'admin') {
-      return res.status(403).json({ message: 'Admin access required.' });
-    }
-    req.user.role = 'admin';
-    return next();
+
+    return res.json({ message: 'User role updated.', role });
   });
-};
+});
 
 router.get('/overview', requireAuth, requireAdmin, (req, res) => {
   const today = new Date();

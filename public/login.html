@@ -4,47 +4,89 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Futsal Booking | Login</title>
+    <link rel="stylesheet" href="/styles.css" />
     <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   </head>
   <body>
     <div class="page-transition">
       <div class="transition-loader"></div>
     </div>
-    
-    <div class="cinematic-bg"></div>
-    <div class="stadium-lines"></div>
-    <div class="cinematic-glow"></div>
-    <div class="futsal-orbs"></div>
-    <div class="cinematic-noise"></div>
+
+    <header class="header">
+      <div class="container">
+        <div class="logo">
+          <i class="fas fa-futbol"></i>
+          <h1>FutsalHub</h1>
+        </div>
+        <nav class="nav">
+          <a href="/index.html" class="nav-link"><i class="fas fa-home"></i> Home</a>
+          <a href="/courts.html" class="nav-link"><i class="fas fa-border-all"></i> Courts</a>
+          <a href="/bookings.html" class="nav-link"><i class="fas fa-calendar-check"></i> My Bookings</a>
+          <a href="/about.html" class="nav-link"><i class="fas fa-info-circle"></i> About</a>
+        </nav>
+      </div>
+    </header>
 
     <main class="page">
-      <section class="auth-card">
-        <div class="brand">
-          <span>⚽ Elite Futsal Arena</span>
-          <h1>Ready to play?</h1>
+      <section class="auth-shell">
+        <div class="auth-intro">
+          <span class="auth-badge"><i class="fas fa-futbol"></i> Elite Futsal Arena</span>
+          <h1>Ready to play? Sign in and pick up where you left off.</h1>
+          <p>
+            FutsalHub keeps the same clean booking experience from the home page, so you can get back to the courts faster.
+          </p>
+
+          <div class="feature-list">
+            <div class="feature-item">
+              <i class="fas fa-clock"></i>
+              <strong>Fast access</strong>
+              <span>Manage your bookings in seconds.</span>
+            </div>
+            <div class="feature-item">
+              <i class="fas fa-shield-alt"></i>
+              <strong>Secure entry</strong>
+              <span>Your session stays protected.</span>
+            </div>
+            <div class="feature-item">
+              <i class="fas fa-calendar-check"></i>
+              <strong>Always ready</strong>
+              <span>Jump straight back into the arena.</span>
+            </div>
+          </div>
         </div>
 
-        <div class="alert" role="alert"></div>
-
-        <form data-endpoint="/api/auth/login" data-redirect="/home">
-          <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email" placeholder="you@email.com" required />
+        <section class="auth-card">
+          <div class="brand">
+            <span>⚽ Elite Futsal Arena</span>
+            <h2>Welcome back</h2>
           </div>
 
-          <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" placeholder="••••••••" required />
-          </div>
+          <div class="alert" role="alert"></div>
 
-          <button class="btn-primary" type="submit">Enter Arena</button>
-        </form>
+          <form data-endpoint="/api/auth/login" data-redirect="/home">
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" placeholder="you@email.com" required />
+            </div>
 
-        <p class="helper">
-          New here? <a href="/signup.html">Create an account</a>
-        </p>
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input type="password" id="password" name="password" placeholder="••••••••" required />
+            </div>
 
-        <p class="footer-note">⚡ Where futsal legends are born ⚡</p>
+            <button class="btn-primary" type="submit">Enter Arena</button>
+          </form>
+
+          <p class="helper">
+            New here? <a href="/signup.html">Create an account</a>
+          </p>
+
+          <p class="footer-note">⚡ Where futsal legends are born ⚡</p>
+        </section>
       </section>
     </main>
 

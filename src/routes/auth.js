@@ -13,7 +13,7 @@ const logger = require('../utils/logger');
 const router = express.Router();
 
 const adminEmails = new Set(
-  String(process.env.ADMIN_EMAILS || 'admin@futsalhub.com')
+  String(process.env.ADMIN_EMAILS || 'admin@localhost')
     .split(',')
     .map((value) => value.trim().toLowerCase())
     .filter(Boolean)
@@ -28,7 +28,7 @@ const authRateLimiter = createRateLimiter(config.rateLimit.auth);
  * Issue JWT authentication cookie
  */
 const issueAuthCookie = (res, payload) => {
-  const token = jwt.sign(payload, config.jwt.secret || 'dev_secret_change_me', {
+  const token = jwt.sign(payload, config.jwt.secret, {
     expiresIn: config.jwt.expiresIn,
   });
   res.cookie('auth', token, config.cookie);
@@ -136,7 +136,30 @@ router.post(
  * Get current authenticated user info
  */
 router.get('/me', requireAuth, (req, res) => {
-  return res.json({ user: { id: req.user.id, email: req.user.email, role: req.user.role || 'customer' } });
+  db.get(
+    'SELECT id, email, role, full_name, phone, created_at FROM users WHERE id = ?',
+    [req.user.id],
+    (err, row) => {
+      if (err) {
+        return res.status(500).json({ message: 'Server error.' });
+      }
+
+      if (!row) {
+        return res.status(401).json({ message: 'Unauthorized.' });
+      }
+
+      return res.json({
+        user: {
+          id: row.id,
+          email: row.email,
+          role: row.role || 'customer',
+          fullName: row.full_name || '',
+          phone: row.phone || '',
+          createdAt: row.created_at,
+        },
+      });
+    }
+  );
 });
 
 /**
