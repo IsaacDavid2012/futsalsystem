@@ -4,6 +4,7 @@ const { requireAuth, enforceOrigin } = require('../middleware/authentication');
 const { processPayment, processRefund } = require('../utils/paymentGateway');
 const { sendBookingConfirmationEmail } = require('../utils/mailer');
 const logger = require('../utils/logger');
+const { v4: uuidv4 } = require('uuid');
 
 const router = express.Router();
 
@@ -98,7 +99,7 @@ router.get('/', requireAuth, (req, res) => {
     `SELECT b.id, b.user_id, b.court_number, b.booking_date, b.original_time_slot,
             b.customer_name, b.customer_phone, b.customer_email,
             b.price_cents, b.status, b.payment_status, b.refund_cents,
-            b.cancelled_at, b.cancel_reason,
+            b.cancelled_at, b.cancel_reason, b.validation_token, b.arrival_status,
             p.payment_method, p.card_last4
      FROM bookings b
      LEFT JOIN payments p ON p.booking_id = b.id
@@ -124,6 +125,8 @@ router.get('/', requireAuth, (req, res) => {
         refund: formatPrice(row.refund_cents || 0),
         cancelledAt: row.cancelled_at,
         cancelReason: row.cancel_reason,
+        validationToken: row.validation_token,
+        arrivalStatus: row.arrival_status,
         paymentMethod: row.payment_method || null,
         cardLast4: row.card_last4 || null,
         isMine: row.user_id === req.user.id,
@@ -139,7 +142,7 @@ router.get('/mine', requireAuth, (req, res) => {
     `SELECT b.id, b.court_number, b.booking_date, b.original_time_slot,
             b.customer_name, b.customer_phone, b.customer_email,
             b.price_cents, b.status, b.payment_status, b.refund_cents,
-            b.cancelled_at, b.cancel_reason,
+            b.cancelled_at, b.cancel_reason, b.validation_token, b.arrival_status,
             p.payment_method, p.card_last4
      FROM bookings b
      LEFT JOIN payments p ON p.booking_id = b.id
@@ -165,6 +168,8 @@ router.get('/mine', requireAuth, (req, res) => {
         refund: formatPrice(row.refund_cents || 0),
         cancelledAt: row.cancelled_at,
         cancelReason: row.cancel_reason,
+        validationToken: row.validation_token,
+        arrivalStatus: row.arrival_status,
         paymentMethod: row.payment_method || null,
         cardLast4: row.card_last4 || null,
       }));
@@ -209,6 +214,7 @@ router.post('/checkout', enforceOrigin, requireAuth, async (req, res) => {
   const priceCents = COURT_PRICES_CENTS[courtNumber];
   const createdAt = new Date().toISOString();
   const cardLast4 = paymentMethod === 'card' ? cardDigits.slice(-4) : null;
+  const validationToken = uuidv4();
 
   // Process payment if card payment is selected
   let paymentResult = null;
@@ -252,8 +258,8 @@ router.post('/checkout', enforceOrigin, requireAuth, async (req, res) => {
           `INSERT INTO bookings (
               user_id, court_number, booking_date, original_time_slot, time_slot,
               customer_name, customer_phone, customer_email,
-              price_cents, status, payment_status, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'confirmed', 'paid', ?)`,
+              price_cents, status, payment_status, created_at, validation_token
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'confirmed', 'paid', ?, ?)`,
           [
             req.user.id,
             courtNumber,
@@ -265,6 +271,7 @@ router.post('/checkout', enforceOrigin, requireAuth, async (req, res) => {
             req.user.email,
             priceCents,
             createdAt,
+            validationToken,
           ],
           function onInsertBooking(insertBookingErr) {
             if (insertBookingErr) {
@@ -316,10 +323,14 @@ router.post('/checkout', enforceOrigin, requireAuth, async (req, res) => {
                         price: formatPrice(priceCents),
                         status: 'confirmed',
                         paymentStatus: 'paid',
+                        arrivalStatus: 'pending',
+                        validationToken,
                         paymentMethod,
                         cardLast4,
                         transactionId,
                       };
+
+                      const validationUrl = `${req.protocol}://${req.get('host')}/admin.html?validate=${validationToken}`;
 
                       void sendBookingConfirmationEmail({
                         to: req.user.email,
@@ -327,6 +338,7 @@ router.post('/checkout', enforceOrigin, requireAuth, async (req, res) => {
                         name: customerName,
                         paymentMethod,
                         cardLast4,
+                        validationUrl,
                       }).catch((mailErr) => {
                         logger.warn('Booking confirmation email failed', {
                           error: mailErr.message,
@@ -484,6 +496,40 @@ router.post('/:id/cancel', enforceOrigin, requireAuth, (req, res) => {
           }
         );
       });
+    }
+  );
+});
+
+router.get('/:id/qrcode.png', requireAuth, (req, res) => {
+  const bookingId = Number(req.params.id);
+  
+  if (!Number.isInteger(bookingId) || bookingId <= 0) {
+    return res.status(400).send('Invalid booking id');
+  }
+
+  db.get(
+    'SELECT validation_token FROM bookings WHERE id = ? AND user_id = ? AND status = "confirmed"',
+    [bookingId, req.user.id],
+    async (err, booking) => {
+      if (err) {
+        return res.status(500).send('Server error');
+      }
+      if (!booking || !booking.validation_token) {
+        return res.status(404).send('Not found');
+      }
+
+      const url = `${req.protocol}://${req.get('host')}/admin.html?validate=${booking.validation_token}`;
+      
+      try {
+        const QRCode = require('qrcode');
+        const buffer = await QRCode.toBuffer(url, { width: 150, margin: 1, type: 'png' });
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours since it never changes
+        res.send(buffer);
+      } catch (error) {
+        logger.error('QR Code generation failed', { error: error.message });
+        res.status(500).send('Error generating QR code');
+      }
     }
   );
 });

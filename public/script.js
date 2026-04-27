@@ -390,6 +390,15 @@ async function loadMyBookings() {
           <p><strong>Amount:</strong> $${booking.price.toFixed(2)}</p>
           <p><strong>Payment:</strong> ${paymentInfo}</p>
           <p><strong>Booking Status:</strong> ${booking.status}</p>
+          ${!isCancelled && booking.validationToken ? `
+          <div class="qr-code-section" style="margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 12px; text-align: center;">
+             <p style="margin-bottom: 10px; font-weight: 600;">Check-in QR Code</p>
+             <img src="/api/bookings/${booking.id}/qrcode.png" width="150" height="150" style="border: 4px solid white; border-radius: 4px; display: inline-block; background: white;" alt="QR Code" />
+             <p style="margin-top: 10px; font-size: 0.9em; color: ${booking.arrivalStatus === 'arrived' ? '#00b894' : '#feca57'};">
+                <i class="fas fa-${booking.arrivalStatus === 'arrived' ? 'check-circle' : 'clock'}"></i> Status: ${booking.arrivalStatus ? booking.arrivalStatus.toUpperCase() : 'PENDING'}
+             </p>
+          </div>
+          ` : ""}
           ${isCancelled ? `<p><strong>Refund:</strong> ${refundText}</p>` : ""}
           ${booking.cancelReason ? `<p><strong>Reason:</strong> ${booking.cancelReason}</p>` : ""}
           <span class="status-pill ${booking.paymentStatus}">${booking.paymentStatus}</span>
@@ -576,6 +585,11 @@ function bindStaticActionButtons() {
   byId("adminExportBtn")?.addEventListener("click", exportAdminCsv);
   byId("adminUserSearch")?.addEventListener("input", () => renderAdminUsers({ users: state.users }));
   byId("adminUsersRefreshBtn")?.addEventListener("click", loadAdminUsers);
+  byId("adminScanBtn")?.addEventListener("click", openScannerModal);
+  byId("adminScannerCloseBtn")?.addEventListener("click", closeScannerModal);
+  byId("backToAdminBtn")?.addEventListener("click", () => {
+    window.location.href = '/admin.html';
+  });
 }
 
 function bindDelegatedActionButtons() {
@@ -1098,6 +1112,104 @@ async function updateUserRole(userId, role) {
   }
 }
 
+// --- QR Validation & Scanner Logic ---
+let html5QrcodeScanner = null;
+
+function openScannerModal() {
+  const modal = byId('adminScannerModal');
+  if (!modal) return;
+  modal.classList.add('active');
+  document.body.style.overflow = "hidden";
+
+  if (!html5QrcodeScanner && window.Html5QrcodeScanner) {
+    html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: 250 });
+    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+  } else if (!window.Html5QrcodeScanner) {
+    showNotification("Scanner library not loaded yet.", "error");
+  }
+}
+
+function closeScannerModal() {
+  const modal = byId('adminScannerModal');
+  if (!modal) return;
+  modal.classList.remove('active');
+  document.body.style.overflow = "auto";
+  
+  if (html5QrcodeScanner) {
+    html5QrcodeScanner.clear().catch(error => console.error("Failed to clear scanner", error));
+    html5QrcodeScanner = null;
+  }
+}
+
+function onScanSuccess(decodedText, decodedResult) {
+  try {
+    const url = new URL(decodedText);
+    const token = url.searchParams.get('validate');
+    if (token) {
+      closeScannerModal();
+      handleValidation(token);
+      window.history.pushState({}, '', `/admin.html?validate=${token}`);
+    } else {
+      showNotification("Invalid QR Code: No validation token found.", "error");
+    }
+  } catch (e) {
+    showNotification("Invalid QR Code format.", "error");
+  }
+}
+
+function onScanFailure(error) {
+  // Ignore continuous scan failures
+}
+
+async function handleValidation(token) {
+  const mainView = byId('adminMainView');
+  const validationView = byId('adminValidationView');
+  const resultContainer = byId('validationResult');
+  const confirmBtn = byId('confirmArrivalBtn');
+
+  if (mainView) mainView.style.display = 'none';
+  if (validationView) validationView.style.display = 'block';
+
+  try {
+    const payload = await apiFetch(`/api/admin/validate/${encodeURIComponent(token)}`);
+    const booking = payload.booking;
+    
+    resultContainer.innerHTML = `
+      <div style="text-align: left; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px;">
+        <p><strong>Customer:</strong> ${booking.customerName}</p>
+        <p><strong>Court:</strong> ${booking.courtNumber}</p>
+        <p><strong>Date & Time:</strong> ${booking.bookingDate} ${booking.timeSlot}</p>
+        <p><strong>Status:</strong> ${booking.status.toUpperCase()}</p>
+        <p><strong>Payment Status:</strong> ${booking.paymentStatus.toUpperCase()}</p>
+        <p><strong>Arrival Status:</strong> <span id="arrivalStatusDisplay">${booking.arrivalStatus.toUpperCase()}</span></p>
+      </div>
+    `;
+
+    if (booking.arrivalStatus !== 'arrived' && booking.status === 'confirmed') {
+      confirmBtn.style.display = 'inline-block';
+      confirmBtn.onclick = async () => {
+        try {
+          confirmBtn.disabled = true;
+          confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Confirming...';
+          await apiFetch(`/api/admin/validate/${encodeURIComponent(token)}/confirm`, { method: 'POST' });
+          showNotification('Arrival confirmed successfully!', 'success');
+          byId('arrivalStatusDisplay').textContent = 'ARRIVED';
+          confirmBtn.style.display = 'none';
+        } catch (error) {
+          showNotification(error.message || 'Could not confirm arrival', 'error');
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = 'Confirm Arrival';
+        }
+      };
+    } else {
+      confirmBtn.style.display = 'none';
+    }
+  } catch (error) {
+    resultContainer.innerHTML = `<p style="color: #ff7675;">Error: ${error.message || 'Invalid token'}</p>`;
+    confirmBtn.style.display = 'none';
+  }
+}
+
 async function bootstrap() {
   try {
     await ensureAuthenticated();
@@ -1116,9 +1228,16 @@ async function bootstrap() {
     bindModalBehavior();
 
     if (hasElement("adminDashboard")) {
-      initializeAdminDateDefaults();
-      await loadAdminOverview();
-      await loadAdminUsers();
+      const urlParams = new URLSearchParams(window.location.search);
+      const validateToken = urlParams.get('validate');
+
+      if (validateToken) {
+        await handleValidation(validateToken);
+      } else {
+        initializeAdminDateDefaults();
+        await loadAdminOverview();
+        await loadAdminUsers();
+      }
       return;
     }
 

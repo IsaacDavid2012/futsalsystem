@@ -317,6 +317,61 @@ function bindEvents() {
   });
 }
 
+async function handleValidation(token) {
+  const navBtn = byId('navValidate');
+  if (navBtn) navBtn.style.display = 'block';
+  
+  document.querySelectorAll('.menu-item').forEach(btn => btn.classList.remove('active'));
+  if (navBtn) navBtn.classList.add('active');
+  
+  document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
+  const validateView = byId('view-validate');
+  if (validateView) validateView.classList.add('active');
+
+  const resultContainer = byId('validationResult');
+  const confirmBtn = byId('confirmArrivalBtn');
+
+  try {
+    const payload = await apiFetch(`/api/admin/validate/${encodeURIComponent(token)}`);
+    const booking = payload.booking;
+    
+    resultContainer.innerHTML = `
+      <div style="text-align: left; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px;">
+        <p><strong>Customer:</strong> ${booking.customerName}</p>
+        <p><strong>Court:</strong> ${booking.courtNumber}</p>
+        <p><strong>Date & Time:</strong> ${booking.bookingDate} ${booking.timeSlot}</p>
+        <p><strong>Status:</strong> ${booking.status.toUpperCase()}</p>
+        <p><strong>Payment Status:</strong> ${booking.paymentStatus.toUpperCase()}</p>
+        <p><strong>Arrival Status:</strong> <span id="arrivalStatusDisplay">${booking.arrivalStatus.toUpperCase()}</span></p>
+      </div>
+    `;
+
+    if (booking.arrivalStatus !== 'arrived' && booking.status === 'confirmed') {
+      confirmBtn.style.display = 'inline-block';
+      confirmBtn.onclick = async () => {
+        try {
+          confirmBtn.disabled = true;
+          confirmBtn.textContent = 'Confirming...';
+          await apiFetch(`/api/admin/validate/${encodeURIComponent(token)}/confirm`, { method: 'POST' });
+          showFlash('Arrival confirmed successfully!', 'success');
+          byId('arrivalStatusDisplay').textContent = 'ARRIVED';
+          confirmBtn.style.display = 'none';
+        } catch (error) {
+          showFlash(error.message || 'Could not confirm arrival', 'error');
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = 'Confirm Arrival';
+        }
+      };
+    } else {
+      confirmBtn.style.display = 'none';
+    }
+    
+  } catch (error) {
+    resultContainer.innerHTML = `<p style="color: #ff7675;">Error: ${error.message || 'Invalid token'}</p>`;
+    confirmBtn.style.display = 'none';
+  }
+}
+
 async function bootstrap() {
   bindViewSwitcher();
   bindEvents();
@@ -327,7 +382,14 @@ async function bootstrap() {
     return;
   }
 
-  await loadOverview();
+  const urlParams = new URLSearchParams(window.location.search);
+  const validateToken = urlParams.get('validate');
+
+  if (validateToken) {
+    await handleValidation(validateToken);
+  } else {
+    await loadOverview();
+  }
 }
 
 document.addEventListener('DOMContentLoaded', bootstrap);

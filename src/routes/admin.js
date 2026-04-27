@@ -211,4 +211,75 @@ router.get('/overview', requireAuth, requireAdmin, (req, res) => {
   );
 });
 
+router.get('/validate/:token', requireAuth, requireAdmin, (req, res) => {
+  const token = String(req.params.token || '').trim();
+
+  if (!token) {
+    return res.status(400).json({ message: 'Validation token is required.' });
+  }
+
+  db.get(
+    `SELECT b.id, b.user_id, b.court_number, b.booking_date, b.original_time_slot,
+            b.customer_name, b.customer_phone, b.customer_email,
+            b.price_cents, b.status, b.payment_status, b.arrival_status,
+            p.payment_method
+     FROM bookings b
+     LEFT JOIN payments p ON p.booking_id = b.id
+     WHERE b.validation_token = ?`,
+    [token],
+    (err, booking) => {
+      if (err) {
+        return res.status(500).json({ message: 'Server error.' });
+      }
+
+      if (!booking) {
+        return res.status(404).json({ message: 'Invalid or unknown booking token.' });
+      }
+
+      return res.json({
+        booking: {
+          id: booking.id,
+          courtNumber: booking.court_number,
+          bookingDate: booking.booking_date,
+          timeSlot: booking.original_time_slot,
+          customerName: booking.customer_name,
+          customerPhone: booking.customer_phone,
+          customerEmail: booking.customer_email,
+          price: formatPrice(booking.price_cents),
+          status: booking.status,
+          paymentStatus: booking.payment_status,
+          arrivalStatus: booking.arrival_status,
+          paymentMethod: booking.payment_method,
+        }
+      });
+    }
+  );
+});
+
+router.post('/validate/:token/confirm', requireAuth, requireAdmin, (req, res) => {
+  const token = String(req.params.token || '').trim();
+
+  if (!token) {
+    return res.status(400).json({ message: 'Validation token is required.' });
+  }
+
+  db.run(
+    `UPDATE bookings
+     SET arrival_status = 'arrived'
+     WHERE validation_token = ? AND status = 'confirmed'`,
+    [token],
+    function (err) {
+      if (err) {
+        return res.status(500).json({ message: 'Server error.' });
+      }
+
+      if (!this.changes) {
+        return res.status(404).json({ message: 'Booking not found or not active.' });
+      }
+
+      return res.json({ message: 'Booking successfully validated.' });
+    }
+  );
+});
+
 module.exports = router;

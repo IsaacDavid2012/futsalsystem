@@ -46,9 +46,12 @@ db.serialize(() => {
       refund_cents INTEGER NOT NULL DEFAULT 0,
       cancelled_at TEXT,
       cancel_reason TEXT,
+      validation_token TEXT,
+      arrival_status TEXT NOT NULL DEFAULT 'pending',
       created_at TEXT NOT NULL,
       FOREIGN KEY (user_id) REFERENCES users (id),
-      UNIQUE (court_number, booking_date, time_slot)
+      UNIQUE (court_number, booking_date, time_slot),
+      UNIQUE (validation_token)
     )`
   );
 
@@ -80,6 +83,9 @@ db.serialize(() => {
   safeRun('ALTER TABLE bookings ADD COLUMN refund_cents INTEGER NOT NULL DEFAULT 0');
   safeRun('ALTER TABLE bookings ADD COLUMN cancelled_at TEXT');
   safeRun('ALTER TABLE bookings ADD COLUMN cancel_reason TEXT');
+  safeRun('ALTER TABLE bookings ADD COLUMN validation_token TEXT');
+  safeRun('CREATE UNIQUE INDEX IF NOT EXISTS idx_validation_token ON bookings(validation_token) WHERE validation_token IS NOT NULL');
+  safeRun('ALTER TABLE bookings ADD COLUMN arrival_status TEXT NOT NULL DEFAULT \'pending\'');
   safeRun('ALTER TABLE payments ADD COLUMN refund_status TEXT NOT NULL DEFAULT \'none\'');
   safeRun('ALTER TABLE payments ADD COLUMN refunded_cents INTEGER NOT NULL DEFAULT 0');
   safeRun('ALTER TABLE payments ADD COLUMN refunded_at TEXT');

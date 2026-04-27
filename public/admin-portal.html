@@ -18,6 +18,7 @@
         <button class="menu-item active" data-view="dashboard" type="button">Dashboard</button>
         <button class="menu-item" data-view="bookings" type="button">Bookings</button>
         <button class="menu-item" data-view="customers" type="button">Customers</button>
+        <button class="menu-item" id="navValidate" data-view="validate" type="button" style="display: none;">Validate</button>
       </nav>
 
       <div class="sidebar-footer">
@@ -127,6 +128,17 @@
               </thead>
               <tbody id="customersTableBody"></tbody>
             </table>
+          </div>
+        </div>
+      </section>
+      <section class="view" id="view-validate">
+        <div class="card" style="max-width: 600px; margin: 0 auto; text-align: center;">
+          <h3 style="margin-bottom: 20px;">Booking Validation</h3>
+          <div id="validationResult">
+             <p>Scanning...</p>
+          </div>
+          <div style="margin-top: 20px;">
+             <button id="confirmArrivalBtn" type="button" style="display: none; padding: 10px 20px; font-size: 1.1em; cursor: pointer; background: #00b894; border: none; color: white; border-radius: 8px;">Confirm Arrival</button>
           </div>
         </div>
       </section>

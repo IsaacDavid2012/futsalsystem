@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const QRCode = require('qrcode');
 const config = require('./config');
 const logger = require('./logger');
 
@@ -16,7 +17,7 @@ const transporter = config.mail.enabled
 
 const formatMoney = (value) => `$${Number(value || 0).toFixed(2)}`;
 
-const bookingEmailHtml = ({ name, booking, paymentMethod, cardLast4 }) => {
+const bookingEmailHtml = ({ name, booking, paymentMethod, cardLast4, includeQr }) => {
   const rows = [
     ['Court', `Court ${booking.courtNumber}`],
     ['Date', booking.bookingDate],
@@ -47,6 +48,12 @@ const bookingEmailHtml = ({ name, booking, paymentMethod, cardLast4 }) => {
           <div style="padding:28px;">
             <p style="margin:0 0 20px;color:#4b5563;font-size:15px;line-height:1.7;">Hi ${name || 'player'}, your booking has been successfully created. We have attached the key details so you can keep everything handy.</p>
             <table role="presentation" cellpadding="0" cellspacing="0" width="100%">${rowsMarkup}</table>
+            ${includeQr ? `
+            <div style="margin-top:24px; text-align:center;">
+              <p style="margin:0 0 10px;color:#2d3436;font-size:14px;font-weight:600;">Show this QR code at the front desk to check-in:</p>
+              <img src="cid:qrcode@futsalhub" alt="Check-in QR Code" width="150" height="150" style="border: 2px solid #dfe6e9; border-radius: 8px; padding: 5px;" />
+            </div>
+            ` : ''}
             <div style="margin-top:24px;padding:16px 18px;border-radius:18px;background:#f8faf9;border:1px solid #dfe6e9;">
               <p style="margin:0;color:#2d3436;font-size:14px;line-height:1.7;">If you need to make changes, sign in to your account and manage the booking from your dashboard.</p>
             </div>
@@ -57,7 +64,7 @@ const bookingEmailHtml = ({ name, booking, paymentMethod, cardLast4 }) => {
   `;
 };
 
-const sendBookingConfirmationEmail = async ({ to, booking, name, paymentMethod, cardLast4 }) => {
+const sendBookingConfirmationEmail = async ({ to, booking, name, paymentMethod, cardLast4, validationUrl }) => {
   if (!transporter) {
     logger.warn('Booking email skipped because SMTP is not configured.');
     return;
@@ -70,6 +77,23 @@ const sendBookingConfirmationEmail = async ({ to, booking, name, paymentMethod, 
 
   if (!recipients.length) {
     return;
+  }
+
+  let qrCodeDataUri = null;
+  const attachments = [];
+
+  if (validationUrl) {
+    try {
+      qrCodeDataUri = await QRCode.toDataURL(validationUrl, { width: 250, margin: 1 });
+      attachments.push({
+        filename: 'qrcode.png',
+        content: qrCodeDataUri.split('base64,')[1],
+        encoding: 'base64',
+        cid: 'qrcode@futsalhub'
+      });
+    } catch (e) {
+      logger.error('Failed to generate QR code for email', { error: e.message });
+    }
   }
 
   await transporter.sendMail({
@@ -88,7 +112,8 @@ const sendBookingConfirmationEmail = async ({ to, booking, name, paymentMethod, 
       `Payment: ${paymentMethod === 'card' ? `Card ending ${cardLast4 || '----'}` : 'Pay at venue'}`,
       `Amount: ${formatMoney(booking.price)}`,
     ].join('\n'),
-    html: bookingEmailHtml({ name, booking, paymentMethod, cardLast4 }),
+    html: bookingEmailHtml({ name, booking, paymentMethod, cardLast4, includeQr: !!qrCodeDataUri }),
+    attachments,
   });
 };
 
