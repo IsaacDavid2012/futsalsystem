@@ -242,9 +242,16 @@ function generateTimeline() {
     const row = document.createElement("div");
     row.className = "timeline-row";
 
+    const courtData = state.courts ? state.courts.find(c => c.courtNumber === court) : { isActive: true };
+    const isInactive = courtData && !courtData.isActive;
+    
     const courtName = document.createElement("div");
     courtName.className = "timeline-court-name";
-    courtName.innerHTML = `<i class="fas fa-futbol"></i> Court ${court}`;
+    if (isInactive) {
+      courtName.innerHTML = `<i class="fas fa-futbol"></i> Court ${court} <br><span style="font-size: 0.7em; color: var(--danger);">Closed</span>`;
+    } else {
+      courtName.innerHTML = `<i class="fas fa-futbol"></i> Court ${court}`;
+    }
 
     const slots = document.createElement("div");
     slots.className = "timeline-slots";
@@ -323,7 +330,10 @@ function generateTimeSlots(courtNumber) {
 function toggleCardFields() {
   const paymentMethod = byId("paymentMethod");
   const cardGroup = byId("cardNumberGroup");
+  const cardExtraGroup = byId("cardExtraGroup");
   const cardNumber = byId("cardNumber");
+  const cardExpiry = byId("cardExpiry");
+  const cardCvc = byId("cardCvc");
 
   if (!paymentMethod || !cardGroup || !cardNumber) {
     return;
@@ -331,10 +341,58 @@ function toggleCardFields() {
 
   const isCard = paymentMethod.value === "card";
   cardGroup.style.display = isCard ? "block" : "none";
+  if (cardExtraGroup) cardExtraGroup.style.display = isCard ? "flex" : "none";
+  
   cardNumber.required = isCard;
+  if (cardExpiry) cardExpiry.required = isCard;
+  if (cardCvc) cardCvc.required = isCard;
+  
   if (!isCard) {
     cardNumber.value = "";
+    if (cardExpiry) cardExpiry.value = "";
+    if (cardCvc) cardCvc.value = "";
   }
+}
+
+async function loadCourts() {
+  try {
+    const payload = await apiFetch('/api/bookings/courts');
+    state.courts = payload.courts || [];
+    applyCourtsStatus();
+  } catch (error) {
+    if (!isMissingFeatureApi(error)) {
+      console.warn("Could not load court statuses.");
+    }
+  }
+}
+
+function applyCourtsStatus() {
+  if (!state.courts) return;
+  state.courts.forEach(court => {
+    const isInactive = !court.isActive;
+    document.querySelectorAll(`button.btn-book[data-court="${court.courtNumber}"]`).forEach(btn => {
+      btn.disabled = isInactive;
+      if (isInactive) {
+        btn.innerHTML = '<i class="fas fa-times-circle"></i> Closed';
+        btn.style.backgroundColor = '#636e72';
+        btn.style.cursor = 'not-allowed';
+      } else {
+        btn.innerHTML = '<i class="fas fa-calendar-plus"></i> Book Court';
+        btn.style.backgroundColor = '';
+        btn.style.cursor = '';
+      }
+    });
+    
+    document.querySelectorAll(`div.court-card[data-court="${court.courtNumber}"]`).forEach(card => {
+      if (isInactive) {
+        card.style.opacity = '0.6';
+        card.style.filter = 'grayscale(100%)';
+      } else {
+        card.style.opacity = '';
+        card.style.filter = '';
+      }
+    });
+  });
 }
 
 async function loadBookingsForCurrentDate() {
@@ -432,6 +490,12 @@ function closeModal() {
 }
 
 async function selectCourt(courtNumber) {
+  const courtData = state.courts ? state.courts.find(c => c.courtNumber === Number(courtNumber)) : null;
+  if (courtData && !courtData.isActive) {
+    showNotification("This court is currently closed.", "error");
+    return;
+  }
+
   state.selectedCourt = Number(courtNumber);
   state.selectedTimeSlot = null;
 
@@ -636,6 +700,8 @@ async function confirmBooking() {
   const email = hasElement("customerEmail") ? byId("customerEmail").value.trim() : "";
   const paymentMethod = hasElement("paymentMethod") ? byId("paymentMethod").value : "card";
   const cardNumber = hasElement("cardNumber") ? byId("cardNumber").value.trim() : "";
+  const cardExpiry = hasElement("cardExpiry") ? byId("cardExpiry").value.trim() : "";
+  const cardCvc = hasElement("cardCvc") ? byId("cardCvc").value.trim() : "";
 
   if (!state.selectedCourt) {
     showNotification("Please select a court.", "error");
@@ -666,6 +732,14 @@ async function confirmBooking() {
     const digits = cardNumber.replace(/\D/g, "");
     if (digits.length < 12 || digits.length > 19) {
       showNotification("Please enter a valid card number.", "error");
+      return;
+    }
+    if (!/^\d{2}\/\d{2}$/.test(cardExpiry)) {
+      showNotification("Please enter a valid expiry date (MM/YY).", "error");
+      return;
+    }
+    if (!/^\d{3,4}$/.test(cardCvc)) {
+      showNotification("Please enter a valid CVC.", "error");
       return;
     }
   }
@@ -1070,6 +1144,49 @@ async function loadAdminOverview() {
   }
 }
 
+async function loadAdminCourts() {
+  try {
+    const payload = await apiFetch('/api/admin/courts');
+    renderAdminCourts(payload.courts || []);
+  } catch (error) {
+    if (!isMissingFeatureApi(error)) {
+      showNotification("Could not load courts.", "error");
+    }
+  }
+}
+
+function renderAdminCourts(courts) {
+  const container = byId("adminCourtsList");
+  if (!container) return;
+
+  container.innerHTML = courts.map(court => `
+    <div class="utilization-row" style="align-items: center; justify-content: space-between;">
+      <div class="utilization-meta">
+        <strong>Court ${court.courtNumber}</strong>
+        <span>Status: ${court.isActive ? 'Active' : 'Disabled'}</span>
+      </div>
+      <div>
+        <button class="admin-action-btn ${court.isActive ? 'secondary' : ''}" type="button" onclick="toggleCourt(${court.courtNumber}, ${court.isActive})">
+          ${court.isActive ? 'Disable Court' : 'Enable Court'}
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function toggleCourt(courtNumber, currentIsActive) {
+  try {
+    await apiFetch(`/api/admin/courts/${courtNumber}/toggle`, {
+      method: 'PATCH',
+      body: JSON.stringify({ isActive: !currentIsActive })
+    });
+    showNotification(`Court ${courtNumber} status updated.`, "success");
+    await loadAdminCourts();
+  } catch (error) {
+    showNotification("Could not update court.", "error");
+  }
+}
+
 async function loadAdminUsers() {
   const btn = byId("adminUsersRefreshBtn");
   const original = btn ? btn.innerHTML : "";
@@ -1114,18 +1231,45 @@ async function updateUserRole(userId, role) {
 
 // --- QR Validation & Scanner Logic ---
 let html5QrcodeScanner = null;
+let html5QrcodeLoaderPromise = null;
 
-function openScannerModal() {
+async function openScannerModal() {
   const modal = byId('adminScannerModal');
   if (!modal) return;
   modal.classList.add('active');
   document.body.style.overflow = "hidden";
 
+  // Ensure the html5-qrcode library is loaded. Attempt to load dynamically
+  // if it isn't present (helps when CDN is slow or blocked).
+  if (!window.Html5QrcodeScanner) {
+    if (!html5QrcodeLoaderPromise) {
+      html5QrcodeLoaderPromise = new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js';
+        script.async = true;
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error('Failed to load html5-qrcode script'));
+        document.head.appendChild(script);
+      });
+    }
+
+    try {
+      showNotification('Loading scanner library...', 'success');
+      await html5QrcodeLoaderPromise;
+    } catch (e) {
+      showNotification('Could not load scanner library.', 'error');
+      return;
+    }
+  }
+
   if (!html5QrcodeScanner && window.Html5QrcodeScanner) {
-    html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: 250 });
-    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-  } else if (!window.Html5QrcodeScanner) {
-    showNotification("Scanner library not loaded yet.", "error");
+    try {
+      html5QrcodeScanner = new Html5QrcodeScanner('qr-reader', { fps: 10, qrbox: 250 });
+      html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+    } catch (e) {
+      console.error('Failed to initialize scanner', e);
+      showNotification('Failed to start camera scanner.', 'error');
+    }
   }
 }
 
@@ -1237,11 +1381,13 @@ async function bootstrap() {
         initializeAdminDateDefaults();
         await loadAdminOverview();
         await loadAdminUsers();
+        await loadAdminCourts();
       }
       return;
     }
 
     updateDateDisplay();
+    await loadCourts();
     await loadBookingsForCurrentDate();
     await loadMyBookings();
     updateStats();
@@ -1262,3 +1408,4 @@ window.cancelBooking = cancelBooking;
 window.loadAdminOverview = loadAdminOverview;
 window.cancelBookingAsAdmin = cancelBookingAsAdmin;
 window.exportAdminCsv = exportAdminCsv;
+window.toggleCourt = toggleCourt;

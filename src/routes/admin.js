@@ -282,4 +282,34 @@ router.post('/validate/:token/confirm', requireAuth, requireAdmin, (req, res) =>
   );
 });
 
+router.get('/courts', requireAuth, requireAdmin, (req, res) => {
+  db.all('SELECT court_number, is_active FROM courts ORDER BY court_number ASC', [], (err, rows) => {
+    if (err) {
+      return res.status(500).json({ message: 'Server error.' });
+    }
+    return res.json({
+      courts: rows.map(row => ({
+        courtNumber: row.court_number,
+        isActive: Boolean(row.is_active)
+      }))
+    });
+  });
+});
+
+router.patch('/courts/:id/toggle', requireAuth, requireAdmin, (req, res) => {
+  const courtNumber = Number(req.params.id);
+  const isActive = req.body.isActive ? 1 : 0;
+
+  if (!Number.isInteger(courtNumber) || courtNumber <= 0 || courtNumber > 5) {
+    return res.status(400).json({ message: 'Invalid court number.' });
+  }
+
+  db.run('UPDATE courts SET is_active = ? WHERE court_number = ?', [isActive, courtNumber], function(err) {
+    if (err) {
+      return res.status(500).json({ message: 'Server error.' });
+    }
+    return res.json({ message: 'Court status updated.', courtNumber, isActive: Boolean(isActive) });
+  });
+});
+
 module.exports = router;

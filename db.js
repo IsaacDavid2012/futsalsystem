@@ -74,6 +74,14 @@ db.serialize(() => {
     )`
   );
 
+  // Courts table for toggling availability
+  db.run(
+    `CREATE TABLE IF NOT EXISTS courts (
+      court_number INTEGER PRIMARY KEY,
+      is_active INTEGER NOT NULL DEFAULT 1
+    )`
+  );
+
   // Safe migrations for existing databases.
   safeRun('ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT \'customer\'');
   safeRun('ALTER TABLE users ADD COLUMN full_name TEXT');
@@ -116,6 +124,9 @@ db.serialize(() => {
       [email, adminPasswordHash, config.admin.name, config.admin.phone, new Date().toISOString()]
     );
   });
+
+  // Seed default courts 1 to 5
+  safeRun('INSERT OR IGNORE INTO courts (court_number, is_active) VALUES (1, 1), (2, 1), (3, 1), (4, 1), (5, 1)');
 });
 
 module.exports = db;

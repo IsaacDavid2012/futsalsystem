@@ -179,6 +179,28 @@ A GitHub Actions workflow is included (`.github/workflows/ci.yml`) that automati
 
 The project is stateless regarding sessions (uses JWT) but stateful regarding the database (SQLite). For true scalability, consider swapping SQLite with PostgreSQL.
 
+### systemd Service
+
+To run the app in the background with `systemctl`, copy the service file into `/etc/systemd/system/` and enable it:
+
+```bash
+sudo cp systemd/futsal-management-system.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now futsal-management-system
+sudo systemctl status futsal-management-system
+```
+
+If your Linux user is not `isaac`, update the `User=` and `Group=` lines in the service file before enabling it.
+
+For day-to-day management, use the helper script:
+
+```bash
+chmod +x scripts/systemd.sh
+scripts/systemd.sh restart
+scripts/systemd.sh status
+scripts/systemd.sh logs -f
+```
+
 ### Render / Railway Setup:
 1. Connect your GitHub repository.
 2. Ensure you have persistent storage (a volume) mapped to the `data/` directory so your SQLite database isn't lost on restarts.

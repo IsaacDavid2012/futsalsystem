@@ -1,0 +1,17 @@
+[Unit]
+Description=Futsal Management System
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/jarvis/code/futsalsystem
+Environment=NODE_ENV=production
+EnvironmentFile=-/jarvis/code/futsalsystem/.env
+ExecStart=/usr/bin/npm start
+Restart=on-failure
+RestartSec=5
+User=isaac
+Group=isaac
+
+[Install]
+WantedBy=multi-user.target

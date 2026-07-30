@@ -88,6 +88,20 @@ const validateBookingInput = ({
   return null;
 };
 
+router.get('/courts', requireAuth, (req, res) => {
+  db.all('SELECT court_number, is_active FROM courts ORDER BY court_number ASC', [], (err, rows) => {
+    if (err) {
+      return res.status(500).json({ message: 'Server error.' });
+    }
+    return res.json({
+      courts: rows.map(row => ({
+        courtNumber: row.court_number,
+        isActive: Boolean(row.is_active)
+      }))
+    });
+  });
+});
+
 router.get('/', requireAuth, (req, res) => {
   const bookingDate = req.query.date;
 
@@ -240,19 +254,29 @@ router.post('/checkout', enforceOrigin, requireAuth, async (req, res) => {
   db.serialize(() => {
     db.run('BEGIN TRANSACTION');
 
-    db.get(
-      'SELECT id FROM bookings WHERE court_number = ? AND booking_date = ? AND original_time_slot = ? AND status = \'confirmed\'',
-      [courtNumber, bookingDate, timeSlot],
-      (checkErr, existing) => {
-        if (checkErr) {
-          db.run('ROLLBACK');
-          return res.status(500).json({ message: 'Server error.' });
-        }
+    db.get('SELECT is_active FROM courts WHERE court_number = ?', [courtNumber], (courtErr, court) => {
+      if (courtErr) {
+        db.run('ROLLBACK');
+        return res.status(500).json({ message: 'Server error.' });
+      }
+      if (!court || court.is_active !== 1) {
+        db.run('ROLLBACK');
+        return res.status(400).json({ message: 'This court is currently disabled and not available for booking.' });
+      }
 
-        if (existing) {
-          db.run('ROLLBACK');
-          return res.status(409).json({ message: 'This slot is already booked.' });
-        }
+      db.get(
+        'SELECT id FROM bookings WHERE court_number = ? AND booking_date = ? AND original_time_slot = ? AND status = \'confirmed\'',
+        [courtNumber, bookingDate, timeSlot],
+        (checkErr, existing) => {
+          if (checkErr) {
+            db.run('ROLLBACK');
+            return res.status(500).json({ message: 'Server error.' });
+          }
+
+          if (existing) {
+            db.run('ROLLBACK');
+            return res.status(409).json({ message: 'This slot is already booked.' });
+          }
 
         db.run(
           `INSERT INTO bookings (
@@ -359,6 +383,7 @@ router.post('/checkout', enforceOrigin, requireAuth, async (req, res) => {
         );
       }
     );
+    });
   });
 });
 

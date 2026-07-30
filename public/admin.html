@@ -102,10 +102,16 @@
                 </div>
 
                 <div class="admin-layout">
-                    <section class="admin-panel accent-panel">
-                        <h2><i class="fas fa-chart-pie"></i> Court Utilization</h2>
-                        <div id="adminUtilizationList" class="utilization-list"></div>
-                    </section>
+                    <div style="display: flex; flex-direction: column; gap: 20px;">
+                        <section class="admin-panel accent-panel" style="margin-bottom: 0;">
+                            <h2><i class="fas fa-chart-pie"></i> Court Utilization</h2>
+                            <div id="adminUtilizationList" class="utilization-list"></div>
+                        </section>
+                        <section class="admin-panel accent-panel" style="margin-bottom: 0;">
+                            <h2><i class="fas fa-toggle-on"></i> Manage Courts</h2>
+                            <div id="adminCourtsList" class="utilization-list"></div>
+                        </section>
+                    </div>
 
                     <section class="admin-panel">
                         <div class="panel-header-row">
